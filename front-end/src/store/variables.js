@@ -6,5 +6,5 @@ module.exports = {
     appNetwork: null,
     appAddress: null,
     */
-    appData: null,
+    appData: {},
 }

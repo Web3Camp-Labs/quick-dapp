@@ -10,7 +10,6 @@ import { useDappContext } from '../store/contextProvider';
 const WD = styled.div`
     padding: 4em;
   background: url(${bgimg});
-
 `;
 
 const Title = styled.h1`
@@ -22,7 +21,7 @@ const Title = styled.h1`
 const List = styled.ul`
 `
 
-export default function Content() {
+export default function AppHome() {
 
     const [appName, setAppName] = useState('');
     const [appDesc, setAppDesc] = useState('');
@@ -72,13 +71,19 @@ export default function Content() {
         }
 
         //TODO: check data
+
+
+        // Dispatch data
         dispatch({payload: {
             appName,
             appDesc,
             appAbi,
             appNetwork: networkName,
             appAddress: contractAddress,
-        }})
+        }});
+
+        // Goto new page
+
     }
 
     return <WD>
