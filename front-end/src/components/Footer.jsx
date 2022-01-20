@@ -1,3 +1,3 @@
 export default function Footer() {
-    return <div>Frozen: WTF???</div>
+    return <div>© Taoist 2022</div>
 }

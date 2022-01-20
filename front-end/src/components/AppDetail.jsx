@@ -98,7 +98,7 @@ export default function AppDetail() {
         </ContractInfo>
         <ContractMethods>
             <div>
-                <Tabs onChange={() => { }} type="card">
+                <Tabs onChange={() => { }} type="card" style={{ marginBottom: 32 }}>
                     <TabPane tab="Read" key="1">
                         {readMethods.map((item, index) => (<div className={index===readActiveIndex?'active':''} key={`readMethods_${index}`} onClick={()=> onChoose(item, index, 'Read')}>{item}</div>))}
                     </TabPane>

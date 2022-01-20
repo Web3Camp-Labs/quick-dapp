@@ -1,13 +1,42 @@
 import { Button, notification } from 'antd';
 import { useEffect, useState } from 'react';
 import { useDappContext } from '../store/contextProvider';
+import styled from 'styled-components';
+import logo from '../res/logo.png';
+
+const HeaderTop = styled.div`
+  user-select:none;
+    height:  2rem;
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    z-index: 9999;
+    .mainContent{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+`;
+
+const Logo = styled.div`
+  padding-top: .1rem;
+  img {
+       width: 2rem;
+    }
+`;
 
 export default function Header() {
 
     const [num, setNum] = useState(0);
     const [account, setAccount] = useState('');
 
-    const {state} =  useDappContext();
+    const { state } = useDappContext();
 
     useEffect(
         () => {
@@ -18,7 +47,7 @@ export default function Header() {
     )
 
     useEffect(
-        ()=> {
+        () => {
             console.log(state.appData.appName);
         }, [state.appData]
     )
@@ -43,8 +72,13 @@ export default function Header() {
         setNum(num + 1);
     };
 
-    return <div>
+    return <HeaderTop><div className='mainContent'>
+        <Logo>
+            <img src={logo} alt="" />
+        </Logo>
+
         {!account.length && <Button type='primary' onClick={() => connectWallet()}>Connect Metamask</Button>}
         {!!account.length && <div>{account}</div>}
     </div>
+    </HeaderTop>
 }
