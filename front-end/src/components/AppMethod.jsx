@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { Input, Button, notification, Tabs } from 'antd';
 import { useEffect, useState } from 'react';
 import { useDappContext } from '../store/contextProvider';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useResolvedPath } from 'react-router-dom';
 
 import { ethers } from 'ethers';
 import { EtherscanProvider } from '@ethersproject/providers';
@@ -19,6 +19,7 @@ export default function AppMethod(props) {
     const [methodInputs, setMethodInputs] = useState([]);
     const [methodValues, setMethodValues] = useState([]);
     const [methodName, setMethodName] = useState('');
+    const [contract, setContract] = useState(null);
 
     useEffect(() => {
         if (!props.itemData) return;
@@ -32,6 +33,12 @@ export default function AppMethod(props) {
 
         setMethodInputs(method.inputs);
         setMethodValues(method.inputs.map(e => null));
+
+        // Init provider and contract
+        let provider = new ethers.providers.Web3Provider(window.ethereum);
+        let contract = new ethers.Contract(appAddress, JSON.parse(appAbi), provider.getSigner());
+        setContract(contract);
+
     }, [props.itemData])
 
     const onValueChange = async (e, index) => {
@@ -47,14 +54,30 @@ export default function AppMethod(props) {
         //TODO: check all values
 
         //TODO: interact with wallet.
+        let method = JSON.parse(appAbi).filter(e => e.name === methodName)[0];
+        if (method.type === "function") {
+            if (method.stateMutability === "view") {
+                let result = await contract.functions[methodName]();
+                // TODO: handle result...
+                // console.log(ethers.utils.formatEther(result[0]));
+                console.log(result);
+            }
 
-        let contract = new ethers.Contract(appAddress, appAbi);
-        console.log(contract);
+            if (method.stateMutability === "nonpayable") {
 
-        console.log(contract[methodName]);
+                console.log(methodValues);
+                let result = await contract.functions[methodName](...methodValues);
+                console.log(result);
+                let receipt =  await result.wait();
+                console.log(receipt);
+            }
 
-        let result = await contract.functions[methodName]();
-        console.log(result);
+            if (method.stateMutability === "payable") {
+                // TODO: add payable case
+                // let result = await contract.functions[methodName](methodValues);
+                // console.log(result);
+            }
+        }
     }
 
     return <div>
