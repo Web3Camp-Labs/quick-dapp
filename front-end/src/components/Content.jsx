@@ -4,6 +4,8 @@ import { Input, Button, notification } from 'antd';
 import bgimg from "../res/couple.jpg";
 import { useEffect, useState } from 'react';
 
+import { useDappContext } from '../store/contextProvider';
+
 
 const WD = styled.div`
     padding: 4em;
@@ -22,15 +24,15 @@ const List = styled.ul`
 
 export default function Content() {
 
-
     const [appName, setAppName] = useState('');
     const [appDesc, setAppDesc] = useState('');
     const [appAbi, setAppAbi] = useState('');
     const [contractAddress, setContractAddress] = useState('');
     const [networkName, setNetworkName] = useState('');
 
-    useEffect(() => {
+    const {dispatch} = useDappContext();
 
+    useEffect(() => {
     }, [])
 
 
@@ -56,7 +58,7 @@ export default function Content() {
 
     const saveApp = () => {
         if ('undefined' === typeof window.ethereum) {
-            console.log('Installed!')
+            console.log('Not installed!')
 
             notification.open({
                 message: 'WTF?',
@@ -68,6 +70,15 @@ export default function Content() {
             });
             return;
         }
+
+        //TODO: check data
+        dispatch({payload: {
+            appName,
+            appDesc,
+            appAbi,
+            appNetwork: networkName,
+            appAddress: contractAddress,
+        }})
     }
 
     return <WD>
@@ -90,7 +101,7 @@ export default function Content() {
                 <div><Input placeholder="0x" value={contractAddress} onChange={onAddressChange} /></div>
             </li>
             <li>
-                <div>Network name</div>
+                <div>Network Name</div>
                 <div>Use "homestead" for ethereum mainnet. Leave blank for a custom network.</div>
                 <div><Input placeholder="goerli" value={networkName} onChange={onNetworkNameChange} /></div>
             </li>
