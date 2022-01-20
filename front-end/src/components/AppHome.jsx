@@ -1,7 +1,6 @@
 import styled from 'styled-components';
 import { Input, Button, notification } from 'antd';
 
-import bgimg from "../res/couple.jpg";
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 

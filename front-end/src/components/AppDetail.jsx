@@ -109,7 +109,6 @@ export default function AppDetail() {
             </div>
             <div>
                 <AppMethod itemData={choosedItem}></AppMethod>
-                <Button type='primary' onClick={() => {;}}>Save</Button>
             </div>
         </ContractMethods>
         <List>
