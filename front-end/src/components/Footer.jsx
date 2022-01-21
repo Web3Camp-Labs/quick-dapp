@@ -6,5 +6,5 @@ const BoxFooter = styled('div')`
 `
 
 export default function Footer() {
-    return <BoxFooter><div>© Taoist 2022</div><div>Supported by Wendy</div></BoxFooter>
+    return <BoxFooter><div>© Taoist 2022</div><div>Supported by ❤️❤️ Wendy</div></BoxFooter>
 }
