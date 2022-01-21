@@ -10,6 +10,8 @@ contract Order {
     uint8 constant public STATUS_CANCEL = 2;
     uint8 constant public STATUS_SUCCESS = 3;
 
+    IERC20 USDT;
+    address owner;
 
     struct OrderObj {
         uint256 id;
@@ -23,9 +25,17 @@ contract Order {
 
     OrderObj[] public orderList;
 
-    function createOrder(uint256 _id, address _token, uint256 _amount, uint256 _price) public {
+    uint256 orderId;
+
+    constructor(address _usdt) {
+        USDT = IERC20(_usdt);
+        owner = msg.sender;
+        orderId = 0;
+    }
+
+    function createOrder(address _token, uint256 _amount, uint256 _price) public {
         OrderObj memory order = OrderObj(
-            _id,
+            orderId,
             msg.sender,
             _token,
             _amount,
@@ -37,6 +47,8 @@ contract Order {
 
         IERC20 token1 = IERC20(_token);
         token1.transferFrom(msg.sender, address(this), _amount);
+
+        orderId ++;
     }
 
     function cancelOrder(uint256 _orderid) public {
@@ -46,35 +58,53 @@ contract Order {
         order.status = STATUS_CANCEL;
 
         IERC20 token1 = IERC20(order.token);
-        token1.transfer(msg.sender,order.amount);
+        token1.transfer(msg.sender,order.amount - order.filled);
     }
 
-    function buy(uint256 _orderid, address usdtToken, uint256 buyAmount) public {
+    function buy(uint256 _orderid, uint256 buyAmount) public {
         OrderObj storage order = orderList[_orderid];
         require(order.status == STATUS_VALID, "Order status is not valid");
-        require(order.amount - order.filled > 0, "Order is not valid");
+        // require(order.amount - order.filled >= buyAmount, "Order is not valid"); // option #1
 
-        order.amount = order.amount - buyAmount;
-        order.filled = order.filled + buyAmount;
-
-        if( order.amount == 0 ){
-            order.status = STATUS_SUCCESS;
-        }else{
-            order.status = STATUS_VALID;
+        require(order.amount - order.filled > 0, "insufficient token");
+        uint256 fillAmount = buyAmount;
+        if(order.amount - order.filled < buyAmount) {
+            fillAmount = order.amount - order.filled;
         }
+
+        order.filled += fillAmount;
+        if(order.amount == order.filled) {
+            order.status = STATUS_SUCCESS;
+        }
+
+        USDT.transferFrom(msg.sender, order.creator, fillAmount * order.price);
+        IERC20(order.token).transfer(msg.sender, fillAmount);
+
+        // order.amount = order.amount - buyAmount;
+        // order.filled = order.filled + buyAmount;
+
+        // if( order.amount == 0 ){
+        //     order.status = STATUS_SUCCESS;
+        // }else{
+        //     order.status = STATUS_VALID;
+        // }
         
-        orderList[_orderid] = order;
+        // orderList[_orderid] = order;
 
-        IERC20 usdttoken = IERC20(usdtToken);
-        usdttoken.transferFrom(msg.sender,order.creator, buyAmount * order.price);
+        // USDT.transferFrom(msg.sender,order.creator, buyAmount * order.price);
 
-
-        IERC20 token1 = IERC20(order.token);
-        token1.transfer(order.creator,order.amount);
-
+        // IERC20 token1 = IERC20(order.token);
+        // token1.transfer(order.creator,order.amount);
     }
 
     function getListLength() public view returns (uint256){
         return orderList.length;
+    }
+
+    function withdrawUSDT(address _to) public {
+        require(owner == msg.sender, 'only contract owner can withdraw assets');
+        uint256 balance = USDT.balanceOf(address(this));
+        require(balance > 0, 'insufficient fund');
+        USDT.transfer(_to, balance);
     }
 }
