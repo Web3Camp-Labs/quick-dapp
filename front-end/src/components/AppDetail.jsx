@@ -17,10 +17,12 @@ const ContractMethods = styled.div`
     justify-content: space-between;
     width: 100%;
     &>div{
-        border: 1px solid #f1f1f1;
+        // border: 1px solid #f1f1f1;
         width: 49%;
         box-sizing: border-box;
         padding: 20px;
+        box-shadow: 0 0 5px #e5e5e5;
+        border-radius: 10px;
     }
 
     .active{
@@ -39,7 +41,20 @@ const ContractMethods = styled.div`
 `
 
 const ContractInfo = styled.div`
-    display: flex;
+    // border: 1px solid #f1f1f1;
+    padding: 20px 20px 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 5px #e5e5e5;
+    border-radius: 10px;
+    dl {
+        display: flex;
+        dt {
+            width: 100px;
+        }
+        dd {
+
+        }
+    }
 `
 
 const WD = styled.div`
@@ -55,8 +70,6 @@ const Title = styled.h1`
   text-weight: bold;
 `;
 
-const List = styled.ul`
-`
 
 export default function AppDetail() {
 
@@ -93,7 +106,7 @@ export default function AppDetail() {
     }, [])
 
     const parseAbi = (abi) => {
-        return JSON.parse(abi).map(e => { if (e.type === 'function') return e.name; });
+        return JSON.parse(abi).filter(e => e.type === 'function').map(e=>e.name).join(',');
     }
 
     const onChoose = (item, index, tabname) => {
@@ -110,12 +123,14 @@ export default function AppDetail() {
     return <WD>
         <Title>{appName}</Title>
         <ContractInfo>
-            <div>Contract:</div>
-            <div>{appAddress}</div>
-        </ContractInfo>
-        <ContractInfo>
-            <div>ABI:</div>
-            <div>{parseAbi(appAbi)}</div>
+            <dl>
+                <dt>Contract:</dt>
+                <dd>{appAddress}</dd>
+            </dl>
+            <dl>
+                <dt>ABI:</dt>
+                <dd>{parseAbi(appAbi)}</dd>
+            </dl>
         </ContractInfo>
         <ContractMethods>
             <div>
@@ -132,8 +147,5 @@ export default function AppDetail() {
                 <AppMethod itemData={choosedItem}></AppMethod>
             </div>
         </ContractMethods>
-        <List>
-        </List>
-
     </WD>
 }

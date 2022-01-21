@@ -10,7 +10,7 @@ const WD = styled.div`
 background-color: #ffffff;
   width: 100vw;
     flex-grow:1;
-  
+    border-radius: 10px;
 `;
 
 const Title = styled.h1`

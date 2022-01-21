@@ -14,7 +14,8 @@ const WD = styled.div`
 //   background: url(${bgimg});
     background-color: #ffffff;
     flex-grow: 1;
-    
+    box-shadow: 0 0 5px #e5e5e5;
+    border-radius: 10px;
 `;
 
 const Title = styled.h1`
