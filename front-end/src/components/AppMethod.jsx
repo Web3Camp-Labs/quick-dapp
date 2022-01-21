@@ -1,15 +1,37 @@
 import styled from 'styled-components';
-import { Input, Button, notification, Tabs, Divider } from 'antd';
+import { Input, Button, notification, message, Divider } from 'antd';
 import { useEffect, useState } from 'react';
 import { useDappContext } from '../store/contextProvider';
-import { Navigate, useNavigate, useResolvedPath } from 'react-router-dom';
 
 import { ethers } from 'ethers';
-import { EtherscanProvider } from '@ethersproject/providers';
 
 console.log(ethers);
 
+const StyleMethods = styled.div`
+    
+`
+
+const MButtonBox = styled.div`
+    display: flex;
+    justify-content: center;
+`;
+
+const MButton = styled(Button)`
+    margin: 10px auto 20px;
+`
+const MName = styled.div`
+    font-size: 1.5em;
+    text-align: center;
+    font-weight: bold;
+    border-bottom: 1px solid #DDDDDD;
+    padding-bottom: 10px;
+`;
+
 const List = styled.ul`
+    margin-top: 10px;
+    li {
+        margin-bottom: 10px;
+    }
 `
 
 export default function AppMethod(props) {
@@ -30,7 +52,7 @@ export default function AppMethod(props) {
         setMethodName(name);
 
         let method = JSON.parse(appAbi).filter(e => e.name === name)[0];
-        console.error(method);
+        console.log(method);
 
         setMethodInputs(method.inputs);
         setMethodValues(method.inputs.map(e => null));
@@ -54,7 +76,7 @@ export default function AppMethod(props) {
 
         //TODO: check all values
 
-        //TODO: interact with wallet.
+        //Interact with wallet.
         let method = JSON.parse(appAbi).filter(e => e.name === methodName)[0];
         if (method.type === "function") {
             if (method.stateMutability === "view") {
@@ -83,17 +105,15 @@ export default function AppMethod(props) {
     }
 
     return <div>
-        <div>{props.itemData}</div>
-        <Divider></Divider>
+        <MName>{props.itemData}</MName>
         <div>
             <List>
                 {methodInputs.map((item, index) => (<li key={`method_${index}`}><div>{item.name}</div><div><Input placeholder={item.type} value={methodValues[index]} onChange={(e) => onValueChange(e, index)} /></div></li>))}
             </List>
         </div>
-        <div>
-            <Button type='primary' onClick={() => onSubmit()}>SUBMIT</Button>
-        </div>
-        <Divider></Divider>
+        <MButtonBox>
+            <MButton type='primary' onClick={() => onSubmit()}>SUBMIT</MButton>
+        </MButtonBox>
         {!!callResult && <div>Result {callResult}</div>}
     </div>
 }

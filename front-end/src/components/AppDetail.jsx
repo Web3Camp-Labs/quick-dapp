@@ -16,9 +16,26 @@ const ContractMethods = styled.div`
     display: flex;
     justify-content: space-between;
     width: 100%;
-    &>div{width: 50%}
+    &>div{
+        border: 1px solid #f1f1f1;
+        width: 49%;
+        box-sizing: border-box;
+        padding: 20px;
+    }
 
-    .active{color:#FF0000}
+    .active{
+        color:#FF0000;
+        background-color: #f5f5f5;
+    }
+
+    .wendy{
+        padding: 5px 10px;
+        margin-bottom: 5px;
+        cursor: pointer;
+        &:hover{
+            color: #FF0000;
+        }
+    }
 `
 
 const ContractInfo = styled.div`
@@ -26,14 +43,16 @@ const ContractInfo = styled.div`
 `
 
 const WD = styled.div`
-    padding: 4em;
-//   background: url(${bgimg});
+    padding: 20px 5%;
+    background-color: #ffffff;
+    flex-grow: 1;
 `;
 
 const Title = styled.h1`
-  font-size: 1em;
+  font-size: 18px;
   text-align: center;
-  color: palevioletred;
+//   color: palevioletred;
+  text-weight: bold;
 `;
 
 const List = styled.ul`
@@ -67,6 +86,8 @@ export default function AppDetail() {
         let wms = writes.map(e => '' + e.name + '(' + e.inputs.map(item => item.type).join(',') + ')');
         setWriteMethods(wms);
 
+        setChoosedItem(rms[0]);
+
         if (!appAbi || appAbi.length == 0) navigate("/");
 
     }, [])
@@ -87,7 +108,7 @@ export default function AppDetail() {
     }
 
     return <WD>
-        <Title>My OneClickApp:</Title>
+        <Title>{appName}</Title>
         <ContractInfo>
             <div>Contract:</div>
             <div>{appAddress}</div>
@@ -100,10 +121,10 @@ export default function AppDetail() {
             <div>
                 <Tabs onChange={() => { }} type="card" style={{ marginBottom: 32 }}>
                     <TabPane tab="Read" key="1">
-                        {readMethods.map((item, index) => (<div className={index===readActiveIndex?'active':''} key={`readMethods_${index}`} onClick={()=> onChoose(item, index, 'Read')}>{item}</div>))}
+                        {readMethods.map((item, index) => (<div className={index === readActiveIndex ? 'active wendy' : 'wendy'} key={`readMethods_${index}`}><span onClick={() => onChoose(item, index, 'Read')}>{item}</span></div>))}
                     </TabPane>
                     <TabPane tab="Write" key="2">
-                        {writeMethods.map((item, index) => (<div className={index===writeActiveIndex?'active':''} key={`writeMethods_${index}`} onClick={()=> onChoose(item, index, 'Write')}>{item}</div>))}
+                        {writeMethods.map((item, index) => (<div className={index === writeActiveIndex ? 'active wendy' : 'wendy'} key={`writeMethods_${index}`}><span onClick={() => onChoose(item, index, 'Write')}>{item}</span></div>))}
                     </TabPane>
                 </Tabs>
             </div>
@@ -113,6 +134,6 @@ export default function AppDetail() {
         </ContractMethods>
         <List>
         </List>
-        
+
     </WD>
 }

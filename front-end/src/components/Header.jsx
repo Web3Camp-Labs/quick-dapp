@@ -2,26 +2,15 @@ import { Button, notification } from 'antd';
 import { useEffect, useState } from 'react';
 import { useDappContext } from '../store/contextProvider';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import logo from '../res/logo.png';
 
 const HeaderTop = styled.div`
-  user-select:none;
-    height:  2rem;
     display: flex;
-    justify-content: center;
-    position: absolute;
-    left: 0;
-    top: 0;
+    justify-content: space-between;
     width: 100vw;
-    z-index: 9999;
-    .mainContent{
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      padding: 0 20px;
-      box-sizing: border-box;
-    }
+    padding: 20px 5%;
+    box-sizing: border-box;
 `;
 
 const Logo = styled.div`
@@ -33,24 +22,10 @@ const Logo = styled.div`
 
 export default function Header() {
 
-    const [num, setNum] = useState(0);
     const [account, setAccount] = useState('');
 
     const { state } = useDappContext();
-
-    useEffect(
-        () => {
-            if (num % 3 === 0) {
-                console.log(`Clicked 3 times`);
-            }
-        }, [num]
-    )
-
-    useEffect(
-        () => {
-            console.log(state.appData.appName);
-        }, [state.appData]
-    )
+    const navigate = useNavigate();
 
     const connectWallet = async () => {
         if ('undefined' !== typeof window.ethereum) {
@@ -67,18 +42,18 @@ export default function Header() {
                 },
             });
         }
-
-        console.log(`on click connect!!!!!!! times: ${num}`);
-        setNum(num + 1);
     };
 
-    return <HeaderTop><div className='mainContent'>
+    const backToHome = async() => {
+        navigate('/home');
+    }
+
+    return <HeaderTop>
         <Logo>
-            <img src={logo} alt="" />
+            <img src={logo} alt="" onClick={()=>{backToHome()}}/>
         </Logo>
 
         {!account.length && <Button type='primary' onClick={() => connectWallet()}>Connect Metamask</Button>}
         {!!account.length && <div>{account}</div>}
-    </div>
     </HeaderTop>
 }

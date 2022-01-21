@@ -7,16 +7,22 @@ import { useNavigate } from 'react-router-dom';
 
 const WD = styled.div`
     padding: 4em;
-  background: papayawhip;
+background-color: #ffffff;
+  width: 100vw;
+    flex-grow:1;
+  
 `;
 
 const Title = styled.h1`
-  font-size: 1em;
+font-size: 18px;
   text-align: center;
-  color: palevioletred;
+  font-weight: bold;
 `;
 
-const List = styled.ul`
+const BoxButton = styled.div`
+margin-top: 50px;
+    display: flex;
+    justify-content: center;
 `
 
 export default function AppHome() {
@@ -25,13 +31,12 @@ export default function AppHome() {
     useEffect(() => {
     }, [])
 
-    const onClickStart = async()=>{
-        // Navigate to App Create page
-        navigate(`/new`);
+    const onClickStart = async () => {
+        navigate(`/new`); // Navigate to App Create page
     }
 
     return <WD>
-        <Title>Welcome to Wendy's OneClickDapp! Be yourself</Title>
-        <Button type='primary' onClick={() => onClickStart()}>Get Start</Button>
+        <Title>Welcome to OneClickDapp!</Title>
+        <BoxButton><Button type='primary' onClick={() => onClickStart()}>Get Start</Button></BoxButton>
     </WD>
 }

@@ -10,17 +10,26 @@ import { useNavigate } from 'react-router-dom';
 
 
 const WD = styled.div`
-    padding: 4em;
+    padding: 40px 5%;
 //   background: url(${bgimg});
+    background-color: #ffffff;
+    flex-grow: 1;
+    
 `;
 
 const Title = styled.h1`
-  font-size: 1em;
+  font-size: 18px;
   text-align: center;
-  color: palevioletred;
+  text-weight: bold;
 `;
 
 const List = styled.ul`
+li {
+    margin-bottom: 20px;
+    &>div {
+        padding-bottom: 5px;
+    }
+}
 `
 
 export default function AppCreate() {
@@ -32,7 +41,7 @@ export default function AppCreate() {
     const [contractAddress, setContractAddress] = useState('');
     const [networkName, setNetworkName] = useState('');
 
-    const {dispatch, state} = useDappContext();
+    const { dispatch, state } = useDappContext();
 
     useEffect(() => {
     }, [])
@@ -74,27 +83,34 @@ export default function AppCreate() {
         }
 
         //TODO: check data
+
+        // test code here!!!
         let abijson = '[{"inputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"symbol","type":"string"},{"internalType":"uint256","name":"supply","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"subtractedValue","type":"uint256"}],"name":"decreaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"addedValue","type":"uint256"}],"name":"increaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"user","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]'
         setAppAbi(abijson);
 
         let contractAddress = '0x387Bd586130a03e4c2ae3c9b9b5481C0993Bfb00';
         setContractAddress(contractAddress);
 
+        let appName = 'My First Dapp';
+        setAppName(appName);
+
         // Dispatch data
-        dispatch({payload: {
-            appName,
-            appDesc,
-            appAbi: abijson,
-            appNetwork: networkName,
-            appAddress: contractAddress,
-        }});
+        dispatch({
+            payload: {
+                appName,
+                appDesc,
+                appAbi: abijson,
+                appNetwork: networkName,
+                appAddress: contractAddress,
+            }
+        });
 
         // Goto new page
         navigate(`/detail`);
     }
 
     return <WD>
-        <Title>My OneClickApp:</Title>
+        <Title>Create OneClickApp</Title>
         <List>
             <li>
                 <div>Name</div>
@@ -113,11 +129,13 @@ export default function AppCreate() {
                 <div><Input placeholder="0x" value={contractAddress} onChange={onAddressChange} /></div>
             </li>
             <li>
-                <div>Network Name</div>
-                <div>Use "homestead" for ethereum mainnet. Leave blank for a custom network.</div>
+                <div>
+                    <div>Network Name</div>
+                    <div>Use "homestead" for ethereum mainnet. Leave blank for a custom network.</div>
+                </div>
                 <div><Input placeholder="goerli" value={networkName} onChange={onNetworkNameChange} /></div>
             </li>
         </List>
-        <Button type='primary' onClick={() => saveApp()}>Save</Button>
+        <Button type='primary' onClick={() => saveApp()}>SAVE</Button>
     </WD>
 }
