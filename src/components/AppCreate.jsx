@@ -42,7 +42,7 @@ export default function AppCreate() {
     const [contractAddress, setContractAddress] = useState('');
     const [networkName, setNetworkName] = useState('');
 
-    const { dispatch, state } = useDappContext();
+    const { dispatch } = useDappContext();
 
     useEffect(() => {
     }, [])

@@ -1,6 +1,6 @@
 import { Button, notification } from 'antd';
-import { useEffect, useState } from 'react';
-import { useDappContext } from '../store/contextProvider';
+import { useState } from 'react';
+// import { useDappContext } from '../store/contextProvider';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import logo from '../res/logo.png';
@@ -24,7 +24,7 @@ export default function Header() {
 
     const [account, setAccount] = useState('');
 
-    const { state } = useDappContext();
+    // const { state } = useDappContext();
     const navigate = useNavigate();
 
     const connectWallet = async () => {

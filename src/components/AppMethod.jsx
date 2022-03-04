@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Input, Button, notification, message, Divider } from 'antd';
+import { Input, Button } from 'antd';
 import { useEffect, useState } from 'react';
 import { useDappContext } from '../store/contextProvider';
 
@@ -7,9 +7,9 @@ import { ethers } from 'ethers';
 
 console.log(ethers);
 
-const StyleMethods = styled.div`
+// const StyleMethods = styled.div`
     
-`
+// `
 
 const MButtonBox = styled.div`
     display: flex;
@@ -46,6 +46,8 @@ export default function AppMethod(props) {
 
     useEffect(() => {
         if (!props.itemData) return;
+        
+        console.log(appName, appDesc, appAbi, appNetwork, appAddress );
 
         let name = props.itemData.split('(')[0];
         console.log(`methodName ${name}`);
@@ -62,7 +64,7 @@ export default function AppMethod(props) {
         let contract = new ethers.Contract(appAddress, JSON.parse(appAbi), provider.getSigner());
         setContract(contract);
 
-    }, [props.itemData])
+    }, [props.itemData, appName, appDesc, appAbi, appNetwork, appAddress]);
 
     const onValueChange = async (e, index) => {
         let values = [...methodValues];

@@ -1,16 +1,15 @@
 import styled from 'styled-components';
-import { Input, Button, notification, Tabs } from 'antd';
-import bgimg from "../res/couple.jpg";
+import { Tabs } from 'antd';
 import { useEffect, useState } from 'react';
 import { useDappContext } from '../store/contextProvider';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import AppMethod from './AppMethod';
 
 const { TabPane } = Tabs;
 
 
-const ContractMethodNames = styled.div`
-`
+// const ContractMethodNames = styled.div`
+// `
 
 const ContractMethods = styled.div`
     display: flex;
@@ -91,6 +90,8 @@ export default function AppDetail() {
 
         console.log(readMethods);
 
+        console.log(appName, appDesc, appAbi, appNetwork, appAddress);
+
         let reads = JSON.parse(appAbi).filter(e => e.type === 'function' && e.stateMutability === 'view');
         let rms = reads.map(e => '' + e.name + '(' + e.inputs.map(item => item.type).join(',') + ')');
         setReadMethods(rms);
@@ -101,9 +102,9 @@ export default function AppDetail() {
 
         setChoosedItem(rms[0]);
 
-        if (!appAbi || appAbi.length == 0) navigate("/");
+        if (!appAbi || appAbi.length === 0) navigate("/");
 
-    }, [])
+    }, [readMethods, appName, appDesc, appAbi, appNetwork, appAddress, navigate])
 
     const parseAbi = (abi) => {
         return JSON.parse(abi).filter(e => e.type === 'function').map(e=>e.name).join(',');
