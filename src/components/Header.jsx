@@ -3,10 +3,11 @@ import { useState } from 'react';
 // import { useDappContext } from '../store/contextProvider';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import logo from '../res/logo.png';
+import logo from '../res/oneclick.png';
 
 const HeaderTop = styled.div`
     display: flex;
+  align-items: center;
     justify-content: space-between;
     width: 100vw;
     padding: 20px 5%;
@@ -16,7 +17,7 @@ const HeaderTop = styled.div`
 const Logo = styled.div`
   padding-top: .1rem;
   img {
-       width: 2rem;
+       width: 80px;
     }
 `;
 
