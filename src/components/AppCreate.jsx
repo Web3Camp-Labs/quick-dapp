@@ -1,7 +1,6 @@
 import styled from 'styled-components';
 import { Input, Button, notification } from 'antd';
 
-import bgimg from "../res/couple.jpg";
 import { useEffect, useState } from 'react';
 
 import { useDappContext } from '../store/contextProvider';
@@ -11,7 +10,6 @@ import { useNavigate } from 'react-router-dom';
 
 const WD = styled.div`
     padding: 40px 5%;
-//   background: url(${bgimg});
     background-color: #ffffff;
     flex-grow: 1;
     box-shadow: 0 0 5px #e5e5e5;
