@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { Tabs } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDappContext } from '../store/contextProvider';
 import { useNavigate } from 'react-router-dom';
 import AppMethod from './AppMethod';
@@ -74,7 +74,8 @@ export default function AppDetail() {
 
     const [readMethods, setReadMethods] = useState([]);
     const [writeMethods, setWriteMethods] = useState([]);
-    const [choosedItem, setChoosedItem] = useState(null);
+
+    const [activeTabKey, setActiveTabKey] = useState("read");
 
     const [readActiveIndex, setReadActive] = useState(0);
     const [writeActiveIndex, setWriteActive] = useState(0);
@@ -87,7 +88,6 @@ export default function AppDetail() {
     const navigate = useNavigate();
 
     useEffect(() => {
-
         console.log(readMethods);
 
         console.log(appName, appDesc, appAbi, appNetwork, appAddress);
@@ -100,8 +100,6 @@ export default function AppDetail() {
         let wms = writes.map(e => '' + e.name + '(' + e.inputs.map(item => item.type).join(',') + ')');
         setWriteMethods(wms);
 
-        setChoosedItem(rms[0]);
-
         if (!appAbi || appAbi.length === 0) navigate("/");
     }, [appAbi]);
 
@@ -109,16 +107,31 @@ export default function AppDetail() {
         return JSON.parse(abi).filter(e => e.type === 'function').map(e=>e.name).join(',');
     }
 
-    const onChoose = (item, index, tabname) => {
-        console.log(item);
-        setChoosedItem(item);
-
-        if (tabname === 'Read') {
+    const onChoose = (index) => {
+        if (activeTabKey === "read") {
             setReadActive(index);
-        } else {
+        } else if (activeTabKey === "write") {
             setWriteActive(index);
         }
     }
+
+    const onSwitchTab = (key) => {
+        setActiveTabKey(key);
+    }
+
+    const choosedItem = useMemo(() => {
+      if (activeTabKey === "read") {
+        return readMethods.length ? readMethods[readActiveIndex] : undefined;
+      } else if (activeTabKey === "write") {
+        return writeMethods.length ? writeMethods[writeActiveIndex] : undefined;
+      }
+    }, [
+      activeTabKey,
+      readMethods,
+      writeMethods,
+      readActiveIndex,
+      writeActiveIndex,
+    ]);
 
     return <WD>
         <Title>{appName}</Title>
@@ -134,17 +147,17 @@ export default function AppDetail() {
         </ContractInfo>
         <ContractMethods>
             <div>
-                <Tabs onChange={() => { }} type="card" style={{ marginBottom: 32 }}>
-                    <TabPane tab="Read" key="1">
-                        {readMethods.map((item, index) => (<div className={index === readActiveIndex ? 'active wendy' : 'wendy'} key={`readMethods_${index}`}><span onClick={() => onChoose(item, index, 'Read')}>{item}</span></div>))}
+                <Tabs onChange={onSwitchTab} type="card" style={{ marginBottom: 32 }}>
+                    <TabPane tab="Read" key="read">
+                        {readMethods.map((item, index) => (<div className={index === readActiveIndex ? 'active wendy' : 'wendy'} key={`readMethods_${index}`}><span onClick={() => onChoose(index)}>{item}</span></div>))}
                     </TabPane>
-                    <TabPane tab="Write" key="2">
-                        {writeMethods.map((item, index) => (<div className={index === writeActiveIndex ? 'active wendy' : 'wendy'} key={`writeMethods_${index}`}><span onClick={() => onChoose(item, index, 'Write')}>{item}</span></div>))}
+                    <TabPane tab="Write" key="write">
+                        {writeMethods.map((item, index) => (<div className={index === writeActiveIndex ? 'active wendy' : 'wendy'} key={`writeMethods_${index}`}><span onClick={() => onChoose(index)}>{item}</span></div>))}
                     </TabPane>
                 </Tabs>
             </div>
             <div>
-                <AppMethod itemData={choosedItem}></AppMethod>
+                {choosedItem && <AppMethod itemData={choosedItem}></AppMethod>}
             </div>
         </ContractMethods>
     </WD>
