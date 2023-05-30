@@ -34,22 +34,20 @@ const List = styled.ul`
     }
 `
 
-export default function AppMethod(props) {
+export default function AppMethod({itemData, contract}) {
 
     const { state } = useDappContext();
     const { appData: { appName, appDesc, appAbi, appNetwork, appAddress } } = state;
     const [methodInputs, setMethodInputs] = useState([]);
     const [methodValues, setMethodValues] = useState([]);
     const [methodName, setMethodName] = useState('');
-    const [contract, setContract] = useState(null);
     const [callResult, setCallResult] = useState(null);
 
     useEffect(() => {
-        if (!props.itemData) return;
-        
-        console.log(appName, appDesc, appAbi, appNetwork, appAddress );
+        if (callResult) setCallResult(undefined);
+        if (!itemData) return;
 
-        let name = props.itemData.split('(')[0];
+        let name = itemData.split('(')[0];
         console.log(`methodName ${name}`);
         setMethodName(name);
 
@@ -59,12 +57,7 @@ export default function AppMethod(props) {
         setMethodInputs(method.inputs);
         setMethodValues(method.inputs.map(e => null));
 
-        // Init provider and contract
-        let provider = new ethers.providers.Web3Provider(window.ethereum);
-        let contract = new ethers.Contract(appAddress, JSON.parse(appAbi), provider.getSigner());
-        setContract(contract);
-
-    }, [props.itemData]);
+    }, [itemData]);
 
     const onValueChange = async (e, index) => {
         let values = [...methodValues];
@@ -79,8 +72,8 @@ export default function AppMethod(props) {
         //TODO: check all values
 
         //Interact with wallet.
-        let method = JSON.parse(appAbi).filter(e => e.name === methodName)[0];
-        if (method.type === "function") {
+        const method = JSON.parse(appAbi).find(e => e.name === methodName)
+        if (method?.type === "function") {
             if (method.stateMutability === "view") {
                 let result = await contract.functions[methodName](...methodValues);
                 // TODO: handle result...
@@ -107,7 +100,7 @@ export default function AppMethod(props) {
     }
 
     return <div>
-        <MName>{props.itemData}</MName>
+        <MName>{itemData}</MName>
         <div>
             <List>
                 {methodInputs.map((item, index) => (<li key={`method_${index}`}><div>{item.name}</div><div><Input placeholder={item.type} value={methodValues[index]} onChange={(e) => onValueChange(e, index)} /></div></li>))}

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDappContext } from '../store/contextProvider';
 import { useNavigate } from 'react-router-dom';
 import AppMethod from './AppMethod';
+import { ethers } from 'ethers';
 
 const { TabPane } = Tabs;
 
@@ -80,6 +81,7 @@ export default function AppDetail() {
     const [readActiveIndex, setReadActive] = useState(0);
     const [writeActiveIndex, setWriteActive] = useState(0);
 
+    const [contract, setContract] = useState();
 
     const { state } = useDappContext();
     const { appData: { appName, appDesc, appAbi, appNetwork, appAddress } } = state;
@@ -102,6 +104,12 @@ export default function AppDetail() {
 
         if (!appAbi || appAbi.length === 0) navigate("/");
     }, [appAbi]);
+
+    useEffect(() => {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const _contract = new ethers.Contract(appAddress, JSON.parse(appAbi), provider.getSigner());
+        setContract(_contract)
+    }, [appAddress, appAbi])
 
     const parseAbi = (abi) => {
         return JSON.parse(abi).filter(e => e.type === 'function').map(e=>e.name).join(',');
@@ -149,15 +157,15 @@ export default function AppDetail() {
             <div>
                 <Tabs onChange={onSwitchTab} type="card" style={{ marginBottom: 32 }}>
                     <TabPane tab="Read" key="read">
-                        {readMethods.map((item, index) => (<div className={index === readActiveIndex ? 'active wendy' : 'wendy'} key={`readMethods_${index}`}><span onClick={() => onChoose(index)}>{item}</span></div>))}
+                        {readMethods.map((item, index) => (<div className={index === readActiveIndex ? 'active wendy' : 'wendy'} key={`readMethods_${index}`} onClick={() => onChoose(index)}><span>{item}</span></div>))}
                     </TabPane>
                     <TabPane tab="Write" key="write">
-                        {writeMethods.map((item, index) => (<div className={index === writeActiveIndex ? 'active wendy' : 'wendy'} key={`writeMethods_${index}`}><span onClick={() => onChoose(index)}>{item}</span></div>))}
+                        {writeMethods.map((item, index) => (<div className={index === writeActiveIndex ? 'active wendy' : 'wendy'} key={`writeMethods_${index}`} onClick={() => onChoose(index)}><span>{item}</span></div>))}
                     </TabPane>
                 </Tabs>
             </div>
             <div>
-                {choosedItem && <AppMethod itemData={choosedItem}></AppMethod>}
+                {choosedItem && <AppMethod itemData={choosedItem} contract={contract}></AppMethod>}
             </div>
         </ContractMethods>
     </WD>
