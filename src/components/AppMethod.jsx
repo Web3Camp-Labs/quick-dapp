@@ -60,10 +60,14 @@ export default function AppMethod({itemData, contract}) {
     }, [itemData]);
 
     const onValueChange = async (e, index) => {
-        let values = [...methodValues];
-        values[index] = e.target.value;
+        const values = [...methodValues];
+        let v = e.target.value
+        const inputDef = methodInputs[index];
+        if (inputDef.type.startsWith("uint")) {
+            v = ethers.BigNumber.from(v);
+        } 
+        values[index] = v;
         setMethodValues(values);
-        // console.log(`e ${e.target.value}, index ${index}, values ${values}`)
     }
 
     const onSubmit = async () => {
@@ -89,12 +93,13 @@ export default function AppMethod({itemData, contract}) {
                 console.log(result);
                 let receipt = await result.wait();
                 console.log(receipt);
+                setCallResult("Done")
             }
 
             if (method.stateMutability === "payable") {
-                // TODO: add payable case
-                // let result = await contract.functions[methodName](methodValues);
-                // console.log(result);
+                let result = await contract.functions[methodName](...methodValues);
+                await result.wait();
+                setCallResult("Done")
             }
         }
     }
