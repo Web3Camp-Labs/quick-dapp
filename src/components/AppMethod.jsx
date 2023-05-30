@@ -64,7 +64,7 @@ export default function AppMethod(props) {
         let contract = new ethers.Contract(appAddress, JSON.parse(appAbi), provider.getSigner());
         setContract(contract);
 
-    }, [props.itemData, appName, appDesc, appAbi, appNetwork, appAddress]);
+    }, [props.itemData]);
 
     const onValueChange = async (e, index) => {
         let values = [...methodValues];

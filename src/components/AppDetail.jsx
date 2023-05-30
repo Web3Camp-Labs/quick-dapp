@@ -103,8 +103,7 @@ export default function AppDetail() {
         setChoosedItem(rms[0]);
 
         if (!appAbi || appAbi.length === 0) navigate("/");
-
-    }, [readMethods, appName, appDesc, appAbi, appNetwork, appAddress, navigate])
+    }, [appAbi]);
 
     const parseAbi = (abi) => {
         return JSON.parse(abi).filter(e => e.type === 'function').map(e=>e.name).join(',');
