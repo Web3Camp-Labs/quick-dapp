@@ -41,7 +41,7 @@ export default function AppCreate() {
     const [contractAddress, setContractAddress] = useState('');
     const [networkName, setNetworkName] = useState('');
 
-    const { dispatch } = useDappContext();
+    const { dispatch, state: { account } } = useDappContext();
 
     useEffect(() => {
     }, [])
@@ -92,6 +92,12 @@ export default function AppCreate() {
             });
             return;
         }
+        if (!account) {
+            notification.open({
+                message: 'Require connect wallet',
+            });
+            return;
+        }
         let abijson = appAbi;
         if (!appAbi && !contractAddress && process.env.NODE_ENV === 'development') { 
             // test code here!!!
@@ -118,6 +124,7 @@ export default function AppCreate() {
 
         // Dispatch data
         dispatch({
+            type: 'set_appData',
             payload: {
                 appName,
                 appDesc,

@@ -25,8 +25,15 @@ const reducer = (state, action) => {
     }
     return data;
     */
+    switch (action.type) { 
+        case 'set_appData':
+            return { ...state, appData: action.payload };
+        case 'set_account':
+            return { ...state, account: action.payload };
+        default:
+            return { ...state };
+    }
 
-    return { ...state, appData: action.payload };
 }
 
 export default reducer;
