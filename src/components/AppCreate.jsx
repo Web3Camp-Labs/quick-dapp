@@ -108,7 +108,7 @@ export default function AppCreate() {
         }
 
         try {
-            JSON.parse(appAbi);
+            JSON.parse(abijson);
         } catch (error) {
             console.error('parse abi failed', error)
             return;
