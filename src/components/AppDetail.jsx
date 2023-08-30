@@ -1,9 +1,10 @@
 import styled from 'styled-components';
 import { Tabs } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDappContext } from '../store/contextProvider';
 import { useNavigate } from 'react-router-dom';
 import AppMethod from './AppMethod';
+import { ethers } from 'ethers';
 
 const { TabPane } = Tabs;
 
@@ -74,11 +75,13 @@ export default function AppDetail() {
 
     const [readMethods, setReadMethods] = useState([]);
     const [writeMethods, setWriteMethods] = useState([]);
-    const [choosedItem, setChoosedItem] = useState(null);
+
+    const [activeTabKey, setActiveTabKey] = useState("read");
 
     const [readActiveIndex, setReadActive] = useState(0);
     const [writeActiveIndex, setWriteActive] = useState(0);
 
+    const [contract, setContract] = useState();
 
     const { state } = useDappContext();
     const { appData: { appName, appDesc, appAbi, appNetwork, appAddress } } = state;
@@ -87,7 +90,6 @@ export default function AppDetail() {
     const navigate = useNavigate();
 
     useEffect(() => {
-
         console.log(readMethods);
 
         console.log(appName, appDesc, appAbi, appNetwork, appAddress);
@@ -100,26 +102,44 @@ export default function AppDetail() {
         let wms = writes.map(e => '' + e.name + '(' + e.inputs.map(item => item.type).join(',') + ')');
         setWriteMethods(wms);
 
-        setChoosedItem(rms[0]);
-
         if (!appAbi || appAbi.length === 0) navigate("/");
+    }, [appAbi]);
 
-    }, [readMethods, appName, appDesc, appAbi, appNetwork, appAddress, navigate])
+    useEffect(() => {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const _contract = new ethers.Contract(appAddress, JSON.parse(appAbi), provider.getSigner());
+        setContract(_contract)
+    }, [appAddress, appAbi])
 
     const parseAbi = (abi) => {
         return JSON.parse(abi).filter(e => e.type === 'function').map(e=>e.name).join(',');
     }
 
-    const onChoose = (item, index, tabname) => {
-        console.log(item);
-        setChoosedItem(item);
-
-        if (tabname === 'Read') {
+    const onChoose = (index) => {
+        if (activeTabKey === "read") {
             setReadActive(index);
-        } else {
+        } else if (activeTabKey === "write") {
             setWriteActive(index);
         }
     }
+
+    const onSwitchTab = (key) => {
+        setActiveTabKey(key);
+    }
+
+    const choosedItem = useMemo(() => {
+      if (activeTabKey === "read") {
+        return readMethods.length ? readMethods[readActiveIndex] : undefined;
+      } else if (activeTabKey === "write") {
+        return writeMethods.length ? writeMethods[writeActiveIndex] : undefined;
+      }
+    }, [
+      activeTabKey,
+      readMethods,
+      writeMethods,
+      readActiveIndex,
+      writeActiveIndex,
+    ]);
 
     return <WD>
         <Title>{appName}</Title>
@@ -135,17 +155,17 @@ export default function AppDetail() {
         </ContractInfo>
         <ContractMethods>
             <div>
-                <Tabs onChange={() => { }} type="card" style={{ marginBottom: 32 }}>
-                    <TabPane tab="Read" key="1">
-                        {readMethods.map((item, index) => (<div className={index === readActiveIndex ? 'active wendy' : 'wendy'} key={`readMethods_${index}`}><span onClick={() => onChoose(item, index, 'Read')}>{item}</span></div>))}
+                <Tabs onChange={onSwitchTab} type="card" style={{ marginBottom: 32 }}>
+                    <TabPane tab="Read" key="read">
+                        {readMethods.map((item, index) => (<div className={index === readActiveIndex ? 'active wendy' : 'wendy'} key={`readMethods_${index}`} onClick={() => onChoose(index)}><span>{item}</span></div>))}
                     </TabPane>
-                    <TabPane tab="Write" key="2">
-                        {writeMethods.map((item, index) => (<div className={index === writeActiveIndex ? 'active wendy' : 'wendy'} key={`writeMethods_${index}`}><span onClick={() => onChoose(item, index, 'Write')}>{item}</span></div>))}
+                    <TabPane tab="Write" key="write">
+                        {writeMethods.map((item, index) => (<div className={index === writeActiveIndex ? 'active wendy' : 'wendy'} key={`writeMethods_${index}`} onClick={() => onChoose(index)}><span>{item}</span></div>))}
                     </TabPane>
                 </Tabs>
             </div>
             <div>
-                <AppMethod itemData={choosedItem}></AppMethod>
+                {choosedItem && <AppMethod itemData={choosedItem} contract={contract}></AppMethod>}
             </div>
         </ContractMethods>
     </WD>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import logo from '../res/oneclick.png';
+import { useDappContext } from '../store/contextProvider';
 
 const HeaderTop = styled.div`
     display: flex;
@@ -25,7 +26,7 @@ export default function Header() {
 
     const [account, setAccount] = useState('');
 
-    // const { state } = useDappContext();
+    const { dispatch } = useDappContext();
     const navigate = useNavigate();
 
     const connectWallet = async () => {
@@ -33,6 +34,7 @@ export default function Header() {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             console.log(accounts);
             setAccount(accounts[0]);
+            dispatch({ type: 'set_account', payload: accounts[0] });
         } else {
             notification.open({
                 message: 'WTF?',

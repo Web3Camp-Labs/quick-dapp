@@ -1,0 +1,20 @@
+{
+    "printWidth": 200,
+    "tabWidth": 4,
+    "useTabs": false,
+    "quotes": true,
+    "singleQuote": true,
+    "jsxSingleQuote": false,
+    "arrowParens": "always",
+    "rangeStart": 0,
+    "rangeEnd": null,
+    "requirePragma": false,
+    "insertPragma": false,
+    "htmlWhitespaceSensitivity": "strict",
+    "endOfLine": "lf",
+    "extends": [
+        "plugin:prettier/recommended",
+        "prettier/flowtype",
+        "prettier/react"
+    ]
+}
