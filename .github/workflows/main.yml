@@ -30,9 +30,11 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
+            
+      - name: Build
+        run: 
+          yarn install --frozen-lockfile
+          yarn build
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v3
