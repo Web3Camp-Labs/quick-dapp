@@ -32,6 +32,8 @@ jobs:
             ${{ runner.os }}-yarn-
             
       - name: Build
+        env:
+          CI: false
         run: 
           yarn install --frozen-lockfile
           yarn build
