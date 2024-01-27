@@ -8,7 +8,7 @@ import { ethers } from 'ethers';
 console.log(ethers);
 
 // const StyleMethods = styled.div`
-    
+
 // `
 
 const MButtonBox = styled.div`
@@ -34,13 +34,15 @@ const List = styled.ul`
     }
 `
 
-export default function AppMethod({itemData, contract}) {
+export default function AppMethod({ itemData, contract }) {
 
     const { state } = useDappContext();
     const { appData: { appName, appDesc, appAbi, appNetwork, appAddress } } = state;
     const [methodInputs, setMethodInputs] = useState([]);
     const [methodValues, setMethodValues] = useState([]);
+    const [methodStateMutability, setMethodStateMutability] = useState('');
     const [methodName, setMethodName] = useState('');
+    const [payableValue, setPayableValue] = useState(0);
     const [callResult, setCallResult] = useState(null);
 
     useEffect(() => {
@@ -56,17 +58,19 @@ export default function AppMethod({itemData, contract}) {
 
         setMethodInputs(method.inputs);
         setMethodValues(method.inputs.map(e => null));
+        setMethodStateMutability(method.stateMutability);
 
     }, [itemData]);
 
     const formatTypeValue = (type, value) => {
         if (type.startsWith("uint")) {
             return ethers.BigNumber.from(value)
-        } else if (type.endsWith("[]")) { 
+        } else if (type.endsWith("[]")) {
             try {
+                console.log(value);
                 const list = JSON.parse(value);
                 const itemType = type.replace("[]", "");
-                return list.map(item=>formatTypeValue(itemType, item))
+                return list.map(item => formatTypeValue(itemType, item))
             } catch (error) {
                 // TODO alert invalid array json
                 return value
@@ -94,34 +98,44 @@ export default function AppMethod({itemData, contract}) {
         //Interact with wallet.
         const method = JSON.parse(appAbi).find(e => e.name === methodName)
         const values = [];
-        for (let i = 0; i< method.inputs.length; i++) { 
+        for (let i = 0; i < method.inputs.length; i++) {
             const inputDef = method.inputs[i];
             values.push(formatTypeValue(inputDef.type, methodValues[i]))
         }
-        console.log("values", values);    
+        console.log("values", values);
         if (method?.type === "function") {
             if (method.stateMutability === "view") {
-                let result = await contract.functions[methodName](...values);
-                // TODO: handle result...
-                // console.log(ethers.utils.formatEther(result[0]));
-                console.log(result);
-                setCallResult(result[0].toString());
+                try {
+                    let result = await contract.functions[methodName](...values);
+                    // TODO: handle result...
+                    // console.log(ethers.utils.formatEther(result[0]));
+                    console.log(result);
+                    setCallResult(result[0].toString());
+                } catch (error) {
+                    setCallResult(error.message);
+                }
             }
 
             if (method.stateMutability === "nonpayable") {
-
-                
-                let result = await contract.functions[methodName](...values);
-                console.log(result);
-                let receipt = await result.wait();
-                console.log(receipt);
-                setCallResult("Done")
+                try {
+                    let result = await contract.functions[methodName](...values);
+                    console.log(result);
+                    let receipt = await result.wait();
+                    console.log(receipt);
+                    setCallResult("Done")
+                } catch (error) {
+                    setCallResult(error.message);
+                }
             }
 
             if (method.stateMutability === "payable") {
-                let result = await contract.functions[methodName](...values);
-                await result.wait();
-                setCallResult("Done")
+                try {
+                    let result = await contract.functions[methodName](...values, { value: ethers.utils.parseEther(payableValue) });
+                    await result.wait();
+                    setCallResult("Done")
+                } catch (error) {
+                    setCallResult(error.message);
+                }
             }
         }
     }
@@ -131,11 +145,12 @@ export default function AppMethod({itemData, contract}) {
         <div>
             <List>
                 {methodInputs.map((item, index) => (<li key={`method_${index}`}><div>{item.name}</div><div><Input placeholder={item.type} value={methodValues[index]} onChange={(e) => onValueChange(e, index)} /></div></li>))}
+                { methodStateMutability === "payable" && (<li key='ether_value'><div>ETH Value</div><div><Input placeholder='0' value={payableValue} onChange={(e) => {payableValue = e.target.value}} /></div></li>)}
             </List>
         </div>
         <MButtonBox>
             <MButton type='primary' onClick={() => onSubmit()}>SUBMIT</MButton>
         </MButtonBox>
-        {!!callResult && <div>Result {callResult}</div>}
+        {!!callResult && <div><div>Result</div><div> {callResult}</div></div>}
     </div>
 }

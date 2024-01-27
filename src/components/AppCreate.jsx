@@ -139,18 +139,18 @@ export default function AppCreate() {
     }
 
     return <WD>
-        <Title>Create OneClickApp</Title>
+        <Title>Create your dApp</Title>
         <List>
             <li>
                 <div>Name</div>
                 <div><Input placeholder="My awesome Dapp" value={appName} onChange={onNameChange} /></div>
             </li>
             <li>
-                <div>Descripton</div>
+                <div>Description</div>
                 <div><Input placeholder="The description of dapp" value={appDesc} onChange={onDescChange} /></div>
             </li>
             <li>
-                <div>Abi *</div>
+                <div>ABI *</div>
                 <div><Input placeholder="[]" value={appAbi} onChange={onAbiChange} /></div>
             </li>
             <li>
