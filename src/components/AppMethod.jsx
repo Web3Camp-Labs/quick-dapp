@@ -59,13 +59,30 @@ export default function AppMethod({itemData, contract}) {
 
     }, [itemData]);
 
+    const formatTypeValue = (type, value) => {
+        if (type.startsWith("uint")) {
+            return ethers.BigNumber.from(value)
+        } else if (type.endsWith("[]")) { 
+            try {
+                const list = JSON.parse(value);
+                console.log("a", list);
+                const itemType = type.replace("[]", "");
+                return list.map(item=>formatTypeValue(itemType, item))
+            } catch (error) {
+                // TODO alert invalid array json
+                return value
+            }
+        } else if (type === "address") {
+            // TODO check address
+            return value
+        } else {
+            return value;
+        }
+    }
+
     const onValueChange = async (e, index) => {
         const values = [...methodValues];
         let v = e.target.value
-        const inputDef = methodInputs[index];
-        if (inputDef.type.startsWith("uint")) {
-            v = ethers.BigNumber.from(v);
-        } 
         values[index] = v;
         setMethodValues(values);
     }
@@ -77,9 +94,15 @@ export default function AppMethod({itemData, contract}) {
 
         //Interact with wallet.
         const method = JSON.parse(appAbi).find(e => e.name === methodName)
+        const values = [];
+        for (let i = 0; i< method.inputs.length; i++) { 
+            const inputDef = method.inputs[i];
+            values.push(formatTypeValue(inputDef.type, methodValues[i]))
+        }
+        console.log("values", values);    
         if (method?.type === "function") {
             if (method.stateMutability === "view") {
-                let result = await contract.functions[methodName](...methodValues);
+                let result = await contract.functions[methodName](...values);
                 // TODO: handle result...
                 // console.log(ethers.utils.formatEther(result[0]));
                 console.log(result);
@@ -88,8 +111,8 @@ export default function AppMethod({itemData, contract}) {
 
             if (method.stateMutability === "nonpayable") {
 
-                console.log(methodValues);
-                let result = await contract.functions[methodName](...methodValues);
+                
+                let result = await contract.functions[methodName](...values);
                 console.log(result);
                 let receipt = await result.wait();
                 console.log(receipt);
@@ -97,7 +120,7 @@ export default function AppMethod({itemData, contract}) {
             }
 
             if (method.stateMutability === "payable") {
-                let result = await contract.functions[methodName](...methodValues);
+                let result = await contract.functions[methodName](...values);
                 await result.wait();
                 setCallResult("Done")
             }
