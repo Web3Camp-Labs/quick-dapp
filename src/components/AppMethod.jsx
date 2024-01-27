@@ -65,7 +65,6 @@ export default function AppMethod({itemData, contract}) {
         } else if (type.endsWith("[]")) { 
             try {
                 const list = JSON.parse(value);
-                console.log("a", list);
                 const itemType = type.replace("[]", "");
                 return list.map(item=>formatTypeValue(itemType, item))
             } catch (error) {
