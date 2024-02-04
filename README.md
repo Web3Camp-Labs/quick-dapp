@@ -2,7 +2,7 @@
 
 Quick DApp is a tool for smart contract developers to interact with any smart contracts easily and quickly with only one click!
 
-[![Publish to GitHub Pages](https://github.com/Web3-Camp/quick-dapp/actions/workflows/main.yml/badge.svg)](https://github.com/Web3-Camp/quick-dapp/actions/workflows/main.yml)
+[![Publish to GitHub Pages](https://github.com/Web3Camp-Labs/quick-dapp/actions/workflows/main.yml/badge.svg)](https://github.com/Web3Camp-Labs/quick-dapp/actions/workflows/main.yml)
 
 With Quick DApp, you can just create a simple dapp in minutes and share it with your friends anywhere.
 
