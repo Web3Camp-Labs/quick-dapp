@@ -1,62 +1,305 @@
-import { Button, notification } from 'antd';
-import { useState } from 'react';
-// import { useDappContext } from '../store/contextProvider';
+import { Button, notification, Tooltip, Dropdown, Menu, Typography } from 'antd';
+import { WalletOutlined, DisconnectOutlined, CopyOutlined, HomeOutlined } from '@ant-design/icons';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import logo from '../res/oneclick.png';
 import { useDappContext } from '../store/contextProvider';
+import { ethers } from 'ethers';
 
 const HeaderTop = styled.div`
     display: flex;
-  align-items: center;
+    align-items: center;
     justify-content: space-between;
     width: 100vw;
-    padding: 20px 5%;
+    padding: 15px 5%;
     box-sizing: border-box;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    background-color: #ffffff;
 `;
 
 const Logo = styled.div`
-  padding-top: .1rem;
-  img {
-       width: 80px;
+    padding-top: .1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    img {
+        width: 80px;
     }
 `;
 
+const LogoText = styled(Typography.Title)`
+    margin: 0 0 0 10px !important;
+    font-size: 18px !important;
+`;
+
+const AccountDisplay = styled.div`
+    display: flex;
+    align-items: center;
+    background-color: #f5f5f5;
+    border-radius: 20px;
+    padding: 5px 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+        background-color: #e6f7ff;
+    }
+    
+    .address {
+        margin-left: 8px;
+        font-size: 14px;
+    }
+`;
+
+const NetworkBadge = styled.div`
+    background-color: ${props => props.color || '#52c41a'};
+    color: white;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 10px;
+`;
+
+const HeaderActions = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 15px;
+`;
+
 export default function Header() {
-
     const [account, setAccount] = useState('');
+    const [network, setNetwork] = useState(null);
+    const [isConnecting, setIsConnecting] = useState(false);
+    const [copied, setCopied] = useState(false);
 
-    const { dispatch } = useDappContext();
+    const { dispatch, state } = useDappContext();
     const navigate = useNavigate();
 
-    const connectWallet = async () => {
-        if ('undefined' !== typeof window.ethereum) {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            console.log(accounts);
+    // Check if account is already connected on component mount
+    useEffect(() => {
+        const checkConnection = async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    // Get current accounts
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        setAccount(accounts[0]);
+                        dispatch({ type: 'set_account', payload: accounts[0] });
+                        
+                        // Get current network
+                        await updateNetworkInfo();
+                    }
+                    
+                    // Listen for account changes
+                    window.ethereum.on('accountsChanged', handleAccountsChanged);
+                    
+                    // Listen for network changes
+                    window.ethereum.on('chainChanged', handleChainChanged);
+                } catch (error) {
+                    console.error('Error checking wallet connection:', error);
+                }
+            }
+        };
+        
+        checkConnection();
+        
+        // Cleanup listeners on unmount
+        return () => {
+            if (window.ethereum) {
+                window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+                window.ethereum.removeListener('chainChanged', handleChainChanged);
+            }
+        };
+    }, []);
+    
+    // Handle account changes
+    const handleAccountsChanged = (accounts) => {
+        if (accounts.length === 0) {
+            // User disconnected their wallet
+            setAccount('');
+            dispatch({ type: 'set_account', payload: '' });
+            notification.info({
+                message: 'Wallet Disconnected',
+                description: 'Your wallet has been disconnected.'
+            });
+        } else {
+            // User switched accounts
             setAccount(accounts[0]);
             dispatch({ type: 'set_account', payload: accounts[0] });
-        } else {
-            notification.open({
-                message: 'WTF?',
-                description:
-                    'Metamask is not installed. Please go to hell and download metamask before you come back.',
-                onClick: () => {
-                    console.log('Metamask not installed!');
-                },
+        }
+    };
+    
+    // Handle network changes
+    const handleChainChanged = async () => {
+        // Reload the page on network change as recommended by MetaMask
+        window.location.reload();
+    };
+    
+    // Get network information
+    const updateNetworkInfo = async () => {
+        if (typeof window.ethereum !== 'undefined') {
+            try {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const network = await provider.getNetwork();
+                setNetwork(network);
+            } catch (error) {
+                console.error('Error getting network info:', error);
+            }
+        }
+    };
+    
+    // Format address for display
+    const formatAddress = (address) => {
+        if (!address) return '';
+        return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+    };
+    
+    // Connect wallet
+    const connectWallet = async () => {
+        if (typeof window.ethereum === 'undefined') {
+            notification.error({
+                message: 'MetaMask Required',
+                description: 'Please install MetaMask to connect your wallet.',
+                duration: 10,
+                btn: (
+                    <Button type="primary" onClick={() => window.open('https://metamask.io/download.html', '_blank')}>
+                        Install MetaMask
+                    </Button>
+                ),
             });
+            return;
+        }
+        
+        setIsConnecting(true);
+        
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            setAccount(accounts[0]);
+            dispatch({ type: 'set_account', payload: accounts[0] });
+            
+            await updateNetworkInfo();
+            
+            notification.success({
+                message: 'Wallet Connected',
+                description: 'Your wallet has been successfully connected!',
+                duration: 3,
+            });
+        } catch (error) {
+            console.error('Error connecting wallet:', error);
+            notification.error({
+                message: 'Connection Failed',
+                description: error.message || 'Failed to connect wallet. Please try again.',
+            });
+        } finally {
+            setIsConnecting(false);
         }
     };
 
-    const backToHome = async() => {
+    // Navigate to home
+    const backToHome = () => {
         navigate('/home');
-    }
+    };
+    
+    // Copy address to clipboard
+    const copyAddress = () => {
+        if (account) {
+            navigator.clipboard.writeText(account);
+            setCopied(true);
+            notification.success({
+                message: 'Address Copied',
+                description: 'Address copied to clipboard!',
+                duration: 2,
+            });
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
+    
+    // Disconnect wallet (for UI purposes)
+    const disconnectWallet = () => {
+        setAccount('');
+        dispatch({ type: 'set_account', payload: '' });
+        notification.info({
+            message: 'Wallet Disconnected',
+            description: 'Your wallet has been disconnected from this app.',
+        });
+    };
+    
+    // Get network display name and color
+    const getNetworkInfo = () => {
+        if (!network) return { name: 'Unknown', color: '#999999' };
+        
+        switch (network.chainId) {
+            case 1:
+                return { name: 'Ethereum', color: '#627EEA' };
+            case 5:
+                return { name: 'Goerli', color: '#3099f2' };
+            case 11155111:
+                return { name: 'Sepolia', color: '#5f4bb6' };
+            case 137:
+                return { name: 'Polygon', color: '#8247E5' };
+            case 80001:
+                return { name: 'Mumbai', color: '#92b5d8' };
+            case 42161:
+                return { name: 'Arbitrum', color: '#28a0f0' };
+            case 10:
+                return { name: 'Optimism', color: '#ff0420' };
+            default:
+                return { name: `Chain ID: ${network.chainId}`, color: '#f5a623' };
+        }
+    };
+    
+    // Wallet menu items
+    const walletMenu = (
+        <Menu>
+            <Menu.Item key="copy" onClick={copyAddress} icon={<CopyOutlined />}>
+                Copy Address
+            </Menu.Item>
+            <Menu.Item key="disconnect" onClick={disconnectWallet} icon={<DisconnectOutlined />}>
+                Disconnect
+            </Menu.Item>
+        </Menu>
+    );
 
-    return <HeaderTop>
-        <Logo>
-            <img src={logo} alt="" onClick={()=>{backToHome()}}/>
-        </Logo>
+    return (
+        <HeaderTop>
+            <Logo onClick={backToHome}>
+                <img src={logo} alt="OneClick dApp Logo" />
+                <LogoText level={4}>OneClick dApp</LogoText>
+            </Logo>
 
-        {!account.length && <Button type='primary' onClick={() => connectWallet()}>Connect Metamask</Button>}
-        {!!account.length && <div>{account}</div>}
-    </HeaderTop>
+            <HeaderActions>
+                <Button 
+                    type="text" 
+                    icon={<HomeOutlined />} 
+                    onClick={backToHome}
+                >
+                    Home
+                </Button>
+                
+                {!account ? (
+                    <Button 
+                        type="primary" 
+                        icon={<WalletOutlined />} 
+                        onClick={connectWallet} 
+                        loading={isConnecting}
+                    >
+                        Connect Wallet
+                    </Button>
+                ) : (
+                    <Dropdown overlay={walletMenu} trigger={['click']}>
+                        <AccountDisplay>
+                            {network && (
+                                <NetworkBadge color={getNetworkInfo().color}>
+                                    {getNetworkInfo().name}
+                                </NetworkBadge>
+                            )}
+                            <WalletOutlined />
+                            <span className="address">{formatAddress(account)}</span>
+                        </AccountDisplay>
+                    </Dropdown>
+                )}
+            </HeaderActions>
+        </HeaderTop>
+    )
 }
