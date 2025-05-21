@@ -67,7 +67,7 @@ const Title = styled.h1`
   font-size: 18px;
   text-align: center;
 //   color: palevioletred;
-  text-weight: bold;
+  font-weight: bold;
 `;
 
 
