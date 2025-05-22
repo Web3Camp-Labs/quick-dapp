@@ -36,7 +36,7 @@ export default function AppHome() {
     }
 
     return <WD>
-        <Title>Welcome to OneClickDapp!</Title>
+        <Title>Welcome to Quick dApp!</Title>
         <BoxButton><Button type='primary' onClick={() => onClickStart()}>Get Start</Button></BoxButton>
     </WD>
 }
