@@ -88,6 +88,8 @@ export default function AppMethod({ itemData, contract }) {
     const [isLoading, setIsLoading] = useState(false);
     const [resultType, setResultType] = useState(null); // 'success', 'error', or null
     const [showResult, setShowResult] = useState(false);
+    const [transactionHash, setTransactionHash] = useState(null);
+    const [blockNumber, setBlockNumber] = useState(null);
     
     // Use a ref to track if component is mounted
     const isMounted = useRef(true);
@@ -362,6 +364,8 @@ export default function AppMethod({ itemData, contract }) {
                         setDisplayResult(txResult);
                         setResultType('success');
                         setShowResult(true);
+                        setTransactionHash(receipt.transactionHash);
+                        setBlockNumber(receipt.blockNumber);
                     }
                     
                     notification.success({
@@ -395,6 +399,8 @@ export default function AppMethod({ itemData, contract }) {
                         setDisplayResult(txResult);
                         setResultType('success');
                         setShowResult(true);
+                        setTransactionHash(receipt.transactionHash);
+                        setBlockNumber(receipt.blockNumber);
                     }
                     
                     notification.success({
@@ -481,8 +487,7 @@ export default function AppMethod({ itemData, contract }) {
                 <Spin tip="Processing transaction..." />
             </div>
         )}
-        
-        {/* Result section */}
+                {/* Result section */}
         <Divider style={{ margin: '20px 0 10px' }} />
         
         <ResultContainer>
@@ -491,7 +496,7 @@ export default function AppMethod({ itemData, contract }) {
                 {isLoading && <Spin size="small" />}
             </ResultTitle>
             
-            {/* Direct debug output */}
+            {/* Hidden debug info */}
             <div style={{ display: 'none' }}>
                 Debug: showResult={showResult ? 'true' : 'false'}, 
                 resultType={resultType || 'none'}, 
@@ -509,19 +514,24 @@ export default function AppMethod({ itemData, contract }) {
                             Function Output:
                         </div>
                         
-                        {/* Static result display - always shows the last result */}
+                        {/* Single result display */}
                         <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '4px' }}>
                             {window.lastResult || displayResult || 'No result data available'}
                         </pre>
                     </ResultValue>
                     
-                    {/* Direct DOM element for result display */}
-                    <div id="result-container" style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
-                        <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-                            Raw Result:
+                    {/* Only show additional details for transactions, not for simple function calls */}
+                    {transactionHash && (
+                        <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
+                            <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+                                Transaction Details:
+                            </div>
+                            <div style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', backgroundColor: '#fff', padding: '8px', border: '1px solid #eee', borderRadius: '4px' }}>
+                                <div><strong>Hash:</strong> {transactionHash}</div>
+                                {blockNumber && <div><strong>Block:</strong> {blockNumber}</div>}
+                            </div>
                         </div>
-                        <pre id="debug-result" style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', backgroundColor: '#fff', padding: '8px', border: '1px solid #eee', borderRadius: '4px' }}></pre>
-                    </div>
+                    )}
                 </div>
             ) : (
                 <div style={{ color: '#999', padding: '10px 0' }}>
