@@ -10,10 +10,10 @@ const { Text, Title: AntTitle } = Typography;
 
 
 const WD = styled.div`
-    padding: 40px 5%;
+    padding: 2em;
     background-color: #ffffff;
+    width: 100vw;
     flex-grow: 1;
-    box-shadow: 0 0 5px #e5e5e5;
     border-radius: 10px;
     max-width: 800px;
     margin: 0 auto;

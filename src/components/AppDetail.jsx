@@ -58,9 +58,11 @@ const ContractInfo = styled.div`
 `
 
 const WD = styled.div`
-    padding: 20px 5%;
+    padding: 2em;
     background-color: #ffffff;
+    width: 100vw;
     flex-grow: 1;
+    border-radius: 10px;
 `;
 
 const Title = styled.h1`
