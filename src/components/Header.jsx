@@ -3,7 +3,7 @@ import { WalletOutlined, DisconnectOutlined, CopyOutlined, HomeOutlined } from '
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import logo from '../res/quick-dapp.png';
+import logo from '../res/logo.svg';
 import { useDappContext } from '../store/contextProvider';
 import { ethers } from 'ethers';
 
@@ -43,14 +43,7 @@ const Logo = styled.div`
     }
 `;
 
-const LogoText = styled(Typography.Title)`
-    margin: 0 0 0 10px !important;
-    font-size: 18px !important;
-    
-    @media (max-width: 768px) {
-        font-size: 16px !important;
-    }
-`;
+
 
 const AccountDisplay = styled.div`
     display: flex;
@@ -299,7 +292,6 @@ export default function Header() {
         <HeaderTop>
             <Logo onClick={backToHome}>
                 <img src={logo} alt="Quick dApp Logo" />
-                <LogoText level={4}>Quick dApp</LogoText>
             </Logo>
 
             <HeaderActions>
