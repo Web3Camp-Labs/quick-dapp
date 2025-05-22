@@ -492,7 +492,7 @@ export default function AppMethod({ itemData, contract }) {
         
         <ResultContainer>
             <ResultTitle>
-                <span>Function Result</span>
+                <span>Result</span>
                 {isLoading && <Spin size="small" />}
             </ResultTitle>
             
@@ -511,7 +511,7 @@ export default function AppMethod({ itemData, contract }) {
                     
                     <ResultValue>
                         <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-                            Function Output:
+                            Output:
                         </div>
                         
                         {/* Single result display */}
