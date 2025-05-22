@@ -79,20 +79,11 @@ With Quick DApp, you can just create a simple dapp in minutes and share it with 
 - `src/hooks/` - Custom React hooks
   - `useTransactionTracker.js` - Hook for tracking transaction status
 
-## History
-
-In the past years, **Patrick Gallagher** created a tool named OneClick DApp for the community. However, this tool has not worked for a long time since mid-2023. So we created a new tool to replace it under the name of Web3Camp.
-
-## Technologies
-
-- React 17
-- ethers.js 5.5
-- Ant Design 4.18
-- Styled Components
-
 ## Special Thanks
 
-https://oneclickdapp.com
+https://oneclickdapp.com (Original inspiration)
+
+In the past years, **Patrick Gallagher** created a tool named OneClick DApp for the community. However, this tool has not worked for a long time since mid-2023. So we created Quick dApp as a new tool to replace it under the name of Web3Camp.
 
 ## License
 

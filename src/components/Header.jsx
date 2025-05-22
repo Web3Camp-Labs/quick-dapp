@@ -3,7 +3,7 @@ import { WalletOutlined, DisconnectOutlined, CopyOutlined, HomeOutlined } from '
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import logo from '../res/oneclick.png';
+import logo from '../res/logo.svg';
 import { useDappContext } from '../store/contextProvider';
 import { ethers } from 'ethers';
 
@@ -11,27 +11,39 @@ const HeaderTop = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 100vw;
-    padding: 15px 5%;
+    width: 100%;
+    min-height: 64px;
+    padding: 0 5%;
     box-sizing: border-box;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     background-color: #ffffff;
-`;
-
-const Logo = styled.div`
-    padding-top: .1rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    img {
-        width: 80px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    
+    @media (max-width: 768px) {
+        min-height: 56px;
+        padding: 0 3%;
     }
 `;
 
-const LogoText = styled(Typography.Title)`
-    margin: 0 0 0 10px !important;
-    font-size: 18px !important;
+const Logo = styled.div`
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 8px 0;
+    img {
+        width: 80px;
+        height: auto;
+        
+        @media (max-width: 768px) {
+            width: 60px;
+        }
+    }
 `;
+
+
 
 const AccountDisplay = styled.div`
     display: flex;
@@ -41,6 +53,7 @@ const AccountDisplay = styled.div`
     padding: 5px 15px;
     cursor: pointer;
     transition: all 0.3s ease;
+    height: 36px;
     
     &:hover {
         background-color: #e6f7ff;
@@ -49,6 +62,15 @@ const AccountDisplay = styled.div`
     .address {
         margin-left: 8px;
         font-size: 14px;
+    }
+    
+    @media (max-width: 768px) {
+        padding: 4px 10px;
+        height: 32px;
+        
+        .address {
+            font-size: 12px;
+        }
     }
 `;
 
@@ -65,6 +87,11 @@ const HeaderActions = styled.div`
     display: flex;
     align-items: center;
     gap: 15px;
+    height: 100%;
+    
+    @media (max-width: 768px) {
+        gap: 8px;
+    }
 `;
 
 export default function Header() {
@@ -264,8 +291,7 @@ export default function Header() {
     return (
         <HeaderTop>
             <Logo onClick={backToHome}>
-                <img src={logo} alt="OneClick dApp Logo" />
-                <LogoText level={4}>OneClick dApp</LogoText>
+                <img src={logo} alt="Quick dApp Logo" />
             </Logo>
 
             <HeaderActions>
