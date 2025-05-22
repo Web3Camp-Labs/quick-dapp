@@ -64,6 +64,12 @@ const FeaturesSection = styled.div`
     }
 `;
 
+const ContentContainer = styled.div`
+    max-width: 1200px;
+    margin: 0 auto;
+`;
+
+
 const SectionTitle = styled(AntTitle)`
     text-align: center;
     margin-bottom: 2em !important;
@@ -155,39 +161,45 @@ export default function AppHome() {
     return (
         <WD>
             <HeroSection>
-                <Logo src={logo} alt="Quick dApp Logo" />
-                <HeroTitle level={1}>Instantly Create dApps for Any Smart Contract</HeroTitle>
-                <HeroSubtitle>
-                    Quick dApp is a tool that lets you create a simple dApp interface for any smart contract in seconds. 
-                    Just paste your contract's ABI and address to get started.
-                </HeroSubtitle>
-                <CTAButton type="primary" size="large" icon={<RocketOutlined />} onClick={onClickStart}>
-                    Create Your dApp
-                </CTAButton>
+                <ContentContainer>
+                    <Logo src={logo} alt="Quick dApp Logo" />
+                    <HeroTitle level={1}>Instantly Create dApps for Any Smart Contract</HeroTitle>
+                    <HeroSubtitle>
+                        Quick dApp is a tool that lets you create a simple dApp interface for any smart contract in seconds. 
+                        Just paste your contract's ABI and address to get started.
+                    </HeroSubtitle>
+                    <CTAButton type="primary" size="large" icon={<RocketOutlined />} onClick={onClickStart}>
+                        Create Your dApp
+                    </CTAButton>
+                </ContentContainer>
             </HeroSection>
             
             <FeaturesSection>
-                <SectionTitle level={2}>Features</SectionTitle>
-                <Row gutter={[24, 24]}>
-                    {features.map((feature, index) => (
-                        <Col xs={24} sm={12} lg={8} key={index}>
-                            <FeatureCard>
-                                <IconWrapper>{feature.icon}</IconWrapper>
-                                <AntTitle level={4}>{feature.title}</AntTitle>
-                                <Paragraph>{feature.description}</Paragraph>
-                            </FeatureCard>
-                        </Col>
-                    ))}
-                </Row>
+                <ContentContainer>
+                    <SectionTitle level={2}>Features</SectionTitle>
+                    <Row gutter={[24, 24]}>
+                        {features.map((feature, index) => (
+                            <Col xs={24} sm={12} lg={8} key={index}>
+                                <FeatureCard>
+                                    <IconWrapper>{feature.icon}</IconWrapper>
+                                    <AntTitle level={4}>{feature.title}</AntTitle>
+                                    <Paragraph>{feature.description}</Paragraph>
+                                </FeatureCard>
+                            </Col>
+                        ))}
+                    </Row>
+                </ContentContainer>
             </FeaturesSection>
             
             <CTASection>
-                <Space direction="vertical" size="large">
-                    <AntTitle level={3}>Ready to build your dApp?</AntTitle>
-                    <CTAButton type="primary" size="large" onClick={onClickStart}>
-                        Get Started Now
-                    </CTAButton>
-                </Space>
+                <ContentContainer>
+                    <Space direction="vertical" size="large">
+                        <AntTitle level={3}>Ready to build your dApp?</AntTitle>
+                        <CTAButton type="primary" size="large" onClick={onClickStart}>
+                            Get Started Now
+                        </CTAButton>
+                    </Space>
+                </ContentContainer>
             </CTASection>
         </WD>
     );
