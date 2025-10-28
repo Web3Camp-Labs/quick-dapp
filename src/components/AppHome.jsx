@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { Button, Row, Col, Card, Typography, Space, Tag } from 'antd';
-import { RocketOutlined, HistoryOutlined, DeleteOutlined } from '@ant-design/icons';
+import { RocketOutlined, HistoryOutlined, DeleteOutlined, ThunderboltOutlined, CodeOutlined, GlobalOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDappContext } from '../store/contextProvider';
@@ -147,6 +147,44 @@ const SavedDappsCard = styled(Card)`
     }
 `;
 
+const FeatureCard = styled(Card)`
+    height: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        border-color: #667eea;
+    }
+
+    .ant-card-body {
+        padding: 24px;
+    }
+`;
+
+const FeatureIcon = styled.div`
+    font-size: 36px;
+    margin-bottom: 16px;
+    color: #667eea;
+`;
+
+const FeatureTitle = styled.h3`
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #2d3748;
+`;
+
+const FeatureDescription = styled.p`
+    color: #718096;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+`;
+
 export default function AppHome() {
     const navigate = useNavigate();
     const { dispatch } = useDappContext();
@@ -200,53 +238,60 @@ export default function AppHome() {
                 </ContentContainer>
             </HeroSection>
 
-            {savedDapps.length > 0 && (
-                <FeaturesSection style={{ paddingTop: '3em', paddingBottom: '3em', background: 'linear-gradient(180deg, rgba(102, 126, 234, 0.02) 0%, transparent 100%)' }}>
-                    <ContentContainer>
-                        <SectionTitle level={2}>
-                            <HistoryOutlined style={{ marginRight: '12px' }} /> Recently Saved dApps
-                        </SectionTitle>
-                        <Row gutter={[20, 20]}>
-                            {savedDapps.slice(0, 6).map((dapp) => (
-                                <Col xs={24} sm={12} lg={8} key={dapp.id}>
-                                    <SavedDappsCard
-                                        hoverable
-                                        onClick={() => onLoadDapp(dapp)}
-                                        title={<span style={{ color: '#2d3748', fontWeight: 600 }}>{dapp.appName || 'Untitled dApp'}</span>}
-                                        extra={
-                                            <Button
-                                                type="text"
-                                                danger
-                                                size="small"
-                                                icon={<DeleteOutlined />}
-                                                onClick={(e) => onDeleteDapp(e, dapp.id)}
-                                            />
-                                        }
-                                    >
-                                        {dapp.appDesc && <Paragraph ellipsis={{ rows: 2 }} style={{ marginBottom: '16px' }}>{dapp.appDesc}</Paragraph>}
-                                        <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                                            <Text type="secondary" style={{ fontSize: '12px', fontFamily: 'monospace' }}>
-                                                {dapp.appAddress ? `${dapp.appAddress.substring(0, 8)}...${dapp.appAddress.substring(dapp.appAddress.length - 6)}` : 'No address'}
-                                            </Text>
-                                            {dapp.appNetwork && <Tag color="purple">{dapp.appNetwork}</Tag>}
-                                            {dapp.lastAccessedAt && (
-                                                <Text type="secondary" style={{ fontSize: '11px' }}>
-                                                    Last accessed: {new Date(dapp.lastAccessedAt).toLocaleDateString()}
+            <FeaturesSection style={{ paddingTop: '3em', paddingBottom: '3em', background: 'linear-gradient(180deg, rgba(102, 126, 234, 0.02) 0%, transparent 100%)' }}>
+                <ContentContainer>
+                    <SectionTitle level={2}>
+                        <HistoryOutlined style={{ marginRight: '12px' }} /> Recently Saved dApps
+                    </SectionTitle>
+                    {savedDapps.length > 0 ? (
+                        <>
+                            <Row gutter={[20, 20]}>
+                                {savedDapps.slice(0, 6).map((dapp) => (
+                                    <Col xs={24} sm={12} lg={8} key={dapp.id}>
+                                        <SavedDappsCard
+                                            hoverable
+                                            onClick={() => onLoadDapp(dapp)}
+                                            title={<span style={{ color: '#2d3748', fontWeight: 600 }}>{dapp.appName || 'Untitled dApp'}</span>}
+                                            extra={
+                                                <Button
+                                                    type="text"
+                                                    danger
+                                                    size="small"
+                                                    icon={<DeleteOutlined />}
+                                                    onClick={(e) => onDeleteDapp(e, dapp.id)}
+                                                />
+                                            }
+                                        >
+                                            {dapp.appDesc && <Paragraph ellipsis={{ rows: 2 }} style={{ marginBottom: '16px' }}>{dapp.appDesc}</Paragraph>}
+                                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                                <Text type="secondary" style={{ fontSize: '12px', fontFamily: 'monospace' }}>
+                                                    {dapp.appAddress ? `${dapp.appAddress.substring(0, 8)}...${dapp.appAddress.substring(dapp.appAddress.length - 6)}` : 'No address'}
                                                 </Text>
-                                            )}
-                                        </Space>
-                                    </SavedDappsCard>
-                                </Col>
-                            ))}
-                        </Row>
-                        {savedDapps.length > 6 && (
-                            <div style={{ textAlign: 'center', marginTop: '24px' }}>
-                                <Text type="secondary" style={{ fontSize: '14px' }}>and {savedDapps.length - 6} more saved dApps...</Text>
-                            </div>
-                        )}
-                    </ContentContainer>
-                </FeaturesSection>
-            )}
+                                                {dapp.appNetwork && <Tag color="purple">{dapp.appNetwork}</Tag>}
+                                                {dapp.lastAccessedAt && (
+                                                    <Text type="secondary" style={{ fontSize: '11px' }}>
+                                                        Last accessed: {new Date(dapp.lastAccessedAt).toLocaleDateString()}
+                                                    </Text>
+                                                )}
+                                            </Space>
+                                        </SavedDappsCard>
+                                    </Col>
+                                ))}
+                            </Row>
+                            {savedDapps.length > 6 && (
+                                <div style={{ textAlign: 'center', marginTop: '24px' }}>
+                                    <Text type="secondary" style={{ fontSize: '14px' }}>and {savedDapps.length - 6} more saved dApps...</Text>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#718096' }}>
+                            <HistoryOutlined style={{ fontSize: '48px', color: '#cbd5e0', marginBottom: '16px' }} />
+                            <p style={{ fontSize: '15px', margin: 0 }}>No saved dApps yet. Create your first dApp to get started!</p>
+                        </div>
+                    )}
+                </ContentContainer>
+            </FeaturesSection>
         </WD>
     );
 }
