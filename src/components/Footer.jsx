@@ -3,75 +3,177 @@ import GithubImg from "../res/github.png";
 import TwitterImg from "../res/Twitter.png";
 
 const Footer = styled.div`
-  height: 80px;
   width: 100%;
-  margin: 0 auto;
-  padding: 15px 5%;
+  padding: 32px 5% 24px;
+  background: #fafbfc;
+  border-top: 1px solid #e1e4e8;
   font-size: 14px;
-  background-color: #ffffff;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
-  
-  .midBox{
+  box-sizing: border-box;
+
+  .footerContent {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .mainRow {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+  }
+
+  /* Left Panel */
+  .leftPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .companyName {
+    color: #24292e;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &:hover {
+      color: #0366d6;
+    }
+  }
+
+  .logoImg {
+    height: 36px;
+    width: auto;
+  }
+
+  .socialIcons {
+    display: flex;
+    gap: 12px;
     align-items: center;
   }
-  
-  img{
-    width: 32px;
-    height: 32px;
-    transition: opacity 0.3s ease;
-    
+
+  .socialIcons a {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+
     &:hover {
-      opacity: 0.8;
+      opacity: 1;
     }
   }
-  
-  .lft{
-    padding-left: 10px;
-    color: #666;
+
+  img {
+    width: 24px;
+    height: 24px;
   }
-  
-  a{
-    display: inline-block;
-    margin-left: 20px;
+
+  /* Right Panel */
+  .rightPanel {
+    display: flex;
+    gap: 40px;
+  }
+
+  .linkColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .columnHeading {
+    color: #24292e;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .columnLink {
+    color: #586069;
     text-decoration: none;
-    color: #1890ff;
-    
+    font-size: 14px;
+    transition: color 0.2s ease;
+    line-height: 1.6;
+
     &:hover {
-      color: #40a9ff;
+      color: #0366d6;
     }
   }
-  
+
+  /* Bottom Copyright */
+  .copyrightRow {
+    margin-top: auto;
+    color: #586069;
+    font-size: 13px;
+    text-align: left;
+  }
+
   @media (max-width: 768px) {
-    height: 70px;
-    padding: 10px 3%;
-    
-    img {
-      width: 28px;
-      height: 28px;
+    padding: 24px 3% 20px;
+
+    .mainRow {
+      flex-direction: column;
+      gap: 32px;
     }
-    
-    .lft {
-      font-size: 12px;
+
+    .rightPanel {
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .copyrightRow {
+      text-align: left;
     }
   }
 `
 export default function footerBox(){
     return  <Footer>
-        <div>
-            <div className="midBox">
-                <a href="https://web3camp.us" target="_blank" rel="noreferrer">
-                    <div className="lft">&copy; 2022-2025 Web3Camp.us</div>
-                </a>
+        <div className="footerContent">
+            <div className="mainRow">
+                {/* Left Panel */}
+                <div className="leftPanel">
+                    <a href="https://web3camp.us" target="_blank" rel="noreferrer" className="companyName">
+                        <img src="/web3camp.logo.png" alt="Web3Camp" className="logoImg"/>
+                    </a>
+                    <div className="socialIcons">
+                        <a href="https://github.com/Web3Camp-Labs/quick-dapp" target="_blank" rel="noreferrer">
+                            <img src={GithubImg} alt="GitHub"/>
+                        </a>
+                        <a href="https://twitter.com/Web3Camp" target="_blank" rel="noreferrer">
+                            <img src={TwitterImg} alt="Twitter"/>
+                        </a>
+                    </div>
+                    {/* Copyright */}
+                    <div className="copyrightRow">
+                        &copy; 2022-2025 Web3Camp.us
+                    </div>
+                </div>
 
-                <div>
-                    <a href="https://github.com/Web3Camp-Labs/quick-dapp" target="_blank" rel="noreferrer">
-                        <img src={GithubImg} alt=""/>
-                    </a>
-                    <a href="https://twitter.com/Web3Camp" target="_blank" rel="noreferrer">
-                        <img src={TwitterImg} alt=""/>
-                    </a>
+                {/* Right Panel - Flexible Grid */}
+                <div className="rightPanel">
+                    {/* Friend Links Column */}
+                    <div className="linkColumn">
+                        <div className="columnHeading">Friends</div>
+                        <a href="https://rebase.network" target="_blank" rel="noreferrer" className="columnLink">
+                            Rebase
+                        </a>
+                        <a href="https://learnblockchain.cn" target="_blank" rel="noreferrer" className="columnLink">
+                            登链社区
+                        </a>
+                    </div>
+
+                    {/* Resources Column */}
+                    <div className="linkColumn">
+                        <div className="columnHeading">Resources</div>
+                        <a href="https://github.com/Web3Camp-Labs/quick-dapp" target="_blank" rel="noreferrer" className="columnLink">
+                            GitHub Repo
+                        </a>
+                        <a href="https://web3camp.us/nft-checker" target="_blank" rel="noreferrer" className="columnLink">
+                            NFT Checker
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

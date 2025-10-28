@@ -1,10 +1,10 @@
 import styled from 'styled-components';
-import { Input, Button, notification, Spin, Typography, Divider } from 'antd';
+import { Input, Button, notification, Spin, Divider } from 'antd';
 import { useEffect, useState, useRef } from 'react';
 import { useDappContext } from '../store/contextProvider';
 import { ethers } from 'ethers';
-
-const { Text } = Typography;
+import ResultDisplay from './ResultDisplay';
+import { getProvider } from '../utils/walletUtils';
 
 // const StyleMethods = styled.div`
 
@@ -33,49 +33,10 @@ const List = styled.ul`
     }
 `
 
-const ResultContainer = styled.div`
-    margin-top: 15px;
-    padding: 15px;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-    word-break: break-all;
-    border: 1px solid #e8e8e8;
-`;
-
-const ErrorText = styled(Text)`
-    color: #ff4d4f;
-    font-size: 14px;
-`;
-
-const SuccessText = styled(Text)`
-    color: #52c41a;
-    font-size: 14px;
-    white-space: pre-wrap;
-`;
-
-const ResultTitle = styled.div`
-    font-weight: bold;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-`;
-
-const ResultValue = styled.div`
-    background-color: white;
-    padding: 10px;
-    border-radius: 4px;
-    border: 1px solid #eee;
-    margin-top: 5px;
-    max-height: 200px;
-    overflow-y: auto;
-    font-family: monospace;
-`;
-
 export default function AppMethod({ itemData, contract }) {
 
     const { state } = useDappContext();
-    const { appData: { appName, appDesc, appAbi, appNetwork, appAddress } } = state;
+    const { appData: { appAbi } } = state;
     const [methodInputs, setMethodInputs] = useState([]);
     const [methodValues, setMethodValues] = useState([]);
     const [methodStateMutability, setMethodStateMutability] = useState('');
@@ -90,7 +51,8 @@ export default function AppMethod({ itemData, contract }) {
     const [showResult, setShowResult] = useState(false);
     const [transactionHash, setTransactionHash] = useState(null);
     const [blockNumber, setBlockNumber] = useState(null);
-    
+    const [chainId, setChainId] = useState(null);
+
     // Use a ref to track if component is mounted
     const isMounted = useRef(true);
 
@@ -100,23 +62,45 @@ export default function AppMethod({ itemData, contract }) {
             isMounted.current = false;
         };
     }, []);
-    
+
+    // Fetch chain ID for block explorer links
+    useEffect(() => {
+        const fetchChainId = async () => {
+            try {
+                const walletProvider = getProvider();
+                if (walletProvider) {
+                    const provider = new ethers.BrowserProvider(walletProvider);
+                    const network = await provider.getNetwork();
+                    setChainId(Number(network.chainId));
+                }
+            } catch (error) {
+                console.error('Error fetching chain ID:', error);
+            }
+        };
+        fetchChainId();
+    }, []);
+
     // Store the previous itemData to detect actual changes
     const prevItemDataRef = useRef('');
     
     useEffect(() => {
+        console.log('useEffect triggered - itemData:', itemData, 'prevItemData:', prevItemDataRef.current);
+
         // Only reset results if the method actually changed
         if (itemData !== prevItemDataRef.current) {
             console.log('Method changed from', prevItemDataRef.current, 'to', itemData);
+            console.log('Resetting result state');
             prevItemDataRef.current = itemData;
-            
+
             // Reset result when method changes
             setCallResult('');
             setDisplayResult('');
             setResultType(null);
             setShowResult(false);
+        } else {
+            console.log('Method did not change, keeping existing results');
         }
-        
+
         if (!itemData) return;
 
         try {
@@ -150,7 +134,7 @@ export default function AppMethod({ itemData, contract }) {
         
         if (type.startsWith("uint") || type.startsWith("int")) {
             try {
-                return ethers.BigNumber.from(value.toString());
+                return BigInt(value.toString());
             } catch (error) {
                 throw new Error(`Invalid number format for ${type}: ${error.message}`);
             }
@@ -166,7 +150,7 @@ export default function AppMethod({ itemData, contract }) {
                 throw new Error(`Invalid array format for ${type}: ${error.message}`);
             }
         } else if (type === "address") {
-            if (!ethers.utils.isAddress(value)) {
+            if (!ethers.isAddress(value)) {
                 throw new Error(`Invalid Ethereum address: ${value}`);
             }
             return value;
@@ -196,18 +180,31 @@ export default function AppMethod({ itemData, contract }) {
     }
 
     const onSubmit = async () => {
+        console.log('=== onSubmit called ===');
+        console.log('Method name:', methodName);
+        console.log('Method inputs:', methodInputs);
+        console.log('Method values:', methodValues);
+        console.log('Contract exists:', !!contract);
+
         setIsLoading(true);
         setCallResult('');
         setDisplayResult('');
         setShowResult(false);
         setResultType(null);
-        
+
         try {
+            // Check if contract is initialized
+            if (!contract) {
+                throw new Error('Contract is not initialized. Please wait or refresh the page.');
+            }
+
             // Parse the ABI to get the method details
             const method = JSON.parse(appAbi).find(e => e.name === methodName);
             if (!method) {
                 throw new Error(`Method ${methodName} not found in ABI`);
             }
+
+            console.log('Method details:', method);
             
             // Validate all inputs before proceeding
             const values = [];
@@ -233,113 +230,101 @@ export default function AppMethod({ itemData, contract }) {
                 if (method.stateMutability === "view" || method.stateMutability === "pure") {
                     try {
                         console.log('Calling view function:', methodName, 'with values:', values);
-                        const result = await contract.functions[methodName](...values);
+                        const result = await contract[methodName](...values);
                         console.log('Raw result:', result);
                         
                         // Format the result based on its type
                         let formattedResult;
-                        
-                        // Handle different result types
-                        if (result[0] === undefined) {
-                            formattedResult = 'No return value';
-                        } else if (result[0] === null) {
-                            formattedResult = 'null';
-                        } else if (result[0] instanceof ethers.BigNumber) {
-                            // Check if it might be representing ETH
-                            if (method.outputs && method.outputs[0] && 
-                                (method.outputs[0].type.includes('uint') || method.outputs[0].name.toLowerCase().includes('balance'))) {
-                                formattedResult = `${result[0].toString()}`;
-                            } else {
-                                formattedResult = result[0].toString();
-                            }
-                        } else if (Array.isArray(result[0])) {
-                            formattedResult = JSON.stringify(result[0], null, 2);
-                        } else if (typeof result[0] === 'boolean') {
-                            formattedResult = result[0].toString();
-                        } else if (typeof result[0] === 'object') {
-                            try {
-                                formattedResult = JSON.stringify(result[0], null, 2);
-                            } catch (e) {
-                                formattedResult = 'Complex object: ' + Object.prototype.toString.call(result[0]);
-                            }
-                        } else if (typeof result[0] === 'string') {
-                            formattedResult = result[0];
+
+                        // In ethers v6, results can be:
+                        // - Direct value for single return
+                        // - Result object (array-like) for multiple returns
+                        // - Result object with named properties
+                        let actualResult;
+
+                        if (result && typeof result === 'object' && result.length !== undefined && result.length > 0) {
+                            // Result object with multiple values - extract first value for single returns
+                            actualResult = result.length === 1 ? result[0] : result;
                         } else {
-                            formattedResult = String(result[0]);
+                            // Direct value
+                            actualResult = result;
+                        }
+
+                        console.log('Actual result after extraction:', actualResult, 'Type:', typeof actualResult);
+
+                        // Handle different result types
+                        if (actualResult === undefined) {
+                            formattedResult = 'No return value';
+                        } else if (actualResult === null) {
+                            formattedResult = 'null';
+                        } else if (typeof actualResult === 'bigint') {
+                            // BigInt handling (ethers v6 uses native BigInt)
+                            formattedResult = actualResult.toString();
+                        } else if (Array.isArray(actualResult)) {
+                            // Handle array results (multiple return values)
+                            const formatted = actualResult.map(item =>
+                                typeof item === 'bigint' ? item.toString() : item
+                            );
+                            formattedResult = JSON.stringify(formatted, null, 2);
+                        } else if (typeof actualResult === 'boolean') {
+                            formattedResult = actualResult.toString();
+                        } else if (typeof actualResult === 'object' && actualResult.length !== undefined) {
+                            // Result object - convert to array
+                            const arr = [];
+                            for (let i = 0; i < actualResult.length; i++) {
+                                arr.push(actualResult[i]);
+                            }
+                            const formatted = arr.map(item =>
+                                typeof item === 'bigint' ? item.toString() : item
+                            );
+                            formattedResult = JSON.stringify(formatted, null, 2);
+                        } else if (typeof actualResult === 'object') {
+                            try {
+                                // Convert bigints in objects to strings for JSON
+                                const replacer = (key, value) =>
+                                    typeof value === 'bigint' ? value.toString() : value;
+                                formattedResult = JSON.stringify(actualResult, replacer, 2);
+                            } catch (e) {
+                                formattedResult = 'Complex object: ' + Object.prototype.toString.call(actualResult);
+                            }
+                        } else if (typeof actualResult === 'string') {
+                            formattedResult = actualResult;
+                        } else {
+                            formattedResult = String(actualResult);
                         }
                         
                         console.log('Formatted result:', formattedResult);
-                        // Make sure we're setting a string value that can be displayed
-                        let displayResult;
-                        if (formattedResult === undefined) {
-                            displayResult = 'No result';
-                        } else if (formattedResult === null) {
-                            displayResult = 'null';
-                        } else if (typeof formattedResult === 'object') {
-                            try {
-                                displayResult = JSON.stringify(formattedResult, null, 2);
-                            } catch (e) {
-                                displayResult = 'Complex object (see console)';
-                            }
-                        } else {
-                            // Ensure we have a string
-                            displayResult = String(formattedResult);
-                        }
-                        
-                        // Debug the actual value
-                        console.log('Display result type:', typeof displayResult);
-                        console.log('Display result value:', displayResult);
-                        
-                        console.log('Setting call result to:', displayResult);
-                        // Force a string value and ensure it's not empty
-                        const finalResult = displayResult || 'Empty result';
-                        console.log('Final result value:', finalResult, 'type:', typeof finalResult);
-                        
-                        // Make sure component is still mounted before updating state
-                        if (isMounted.current) {
-                            // Create a global variable for debugging
-                            window.lastResult = finalResult;
-                        
-                        // Update state in a specific order to ensure UI updates
+
+                        // Ensure we have a string for display
+                        const finalResult = String(formattedResult);
+                        console.log('Final result value:', finalResult);
+                        console.log('Final result type:', typeof finalResult);
+                        console.log('Final result length:', finalResult.length);
+
+                        // Update state - React 18 will batch these automatically
+                        console.log('About to update state, isMounted:', isMounted.current);
+                        // Remove isMounted check - React 18 handles unmounted updates safely
+                        console.log('Updating state with result:', finalResult);
                         setIsLoading(false);
-                        
-                        // Use a single state update batch with a timeout to avoid React batching issues
-                        setTimeout(() => {
-                            if (isMounted.current) {
-                                setResultType('success');
-                                setDisplayResult(finalResult);
-                                setCallResult(finalResult);
-                                setShowResult(true);
-                                
-                                // Create a direct DOM element to show the result
-                                const debugElement = document.getElementById('debug-result');
-                                if (debugElement) {
-                                    debugElement.textContent = finalResult;
-                                }
-                            }
-                        }, 0);
-                        }
-                        
+                        setCallResult(finalResult);
+                        setDisplayResult(finalResult);
+                        setResultType('success');
+                        setShowResult(true);
+                        console.log('State update calls completed');
+
                         notification.success({
                             message: 'Call Successful',
                             description: 'The read operation completed successfully.'
                         });
                     } catch (error) {
                         console.error('Error calling view function:', error);
-                        if (isMounted.current) {
-                            setDisplayResult(error.message);
-                            setCallResult(error.message);
-                            setShowResult(true);
-                            setResultType('error');
-                            
-                            // Force a UI update with a small timeout
-                            setTimeout(() => {
-                                if (isMounted.current) {
-                                    setShowResult(true);
-                                }
-                            }, 50);
-                        }
-                        
+                        // Remove isMounted check - React 18 handles this safely
+                        setIsLoading(false);
+                        setCallResult(error.message);
+                        setDisplayResult(error.message);
+                        setResultType('error');
+                        setShowResult(true);
+
                         notification.error({
                             message: 'Call Failed',
                             description: `Error: ${error.message}`
@@ -349,25 +334,23 @@ export default function AppMethod({ itemData, contract }) {
                 
                 // State-changing function call (non-payable)
                 else if (method.stateMutability === "nonpayable") {
-                    const result = await contract.functions[methodName](...values);
+                    const tx = await contract[methodName](...values);
                     
                     notification.info({
                         message: 'Transaction Submitted',
                         description: 'Waiting for confirmation...'
                     });
-                    
-                    const receipt = await result.wait();
-                    
+
+                    const receipt = await tx.wait();
+
                     const txResult = `Transaction confirmed in block ${receipt.blockNumber}\nTransaction hash: ${receipt.transactionHash}`;
-                    if (isMounted.current) {
-                        setCallResult(txResult);
-                        setDisplayResult(txResult);
-                        setResultType('success');
-                        setShowResult(true);
-                        setTransactionHash(receipt.transactionHash);
-                        setBlockNumber(receipt.blockNumber);
-                    }
-                    
+                    setCallResult(txResult);
+                    setDisplayResult(txResult);
+                    setResultType('success');
+                    setShowResult(true);
+                    setTransactionHash(receipt.transactionHash);
+                    setBlockNumber(receipt.blockNumber);
+
                     notification.success({
                         message: 'Transaction Confirmed',
                         description: `Transaction completed in block ${receipt.blockNumber}`
@@ -380,28 +363,26 @@ export default function AppMethod({ itemData, contract }) {
                     if (!payableValue || isNaN(parseFloat(payableValue))) {
                         throw new Error('Please enter a valid ETH amount');
                     }
-                    
-                    const result = await contract.functions[methodName](
-                        ...values, 
-                        { value: ethers.utils.parseEther(payableValue) }
+
+                    const tx = await contract[methodName](
+                        ...values,
+                        { value: ethers.parseEther(payableValue) }
                     );
-                    
+
                     notification.info({
                         message: 'Transaction Submitted',
                         description: `Sending ${payableValue} ETH. Waiting for confirmation...`
                     });
-                    
-                    const receipt = await result.wait();
-                    
+
+                    const receipt = await tx.wait();
+
                     const txResult = `Transaction confirmed in block ${receipt.blockNumber}\nTransaction hash: ${receipt.transactionHash}\nSent ${payableValue} ETH`;
-                    if (isMounted.current) {
-                        setCallResult(txResult);
-                        setDisplayResult(txResult);
-                        setResultType('success');
-                        setShowResult(true);
-                        setTransactionHash(receipt.transactionHash);
-                        setBlockNumber(receipt.blockNumber);
-                    }
+                    setCallResult(txResult);
+                    setDisplayResult(txResult);
+                    setResultType('success');
+                    setShowResult(true);
+                    setTransactionHash(receipt.transactionHash);
+                    setBlockNumber(receipt.blockNumber);
                     
                     notification.success({
                         message: 'Transaction Confirmed',
@@ -413,13 +394,11 @@ export default function AppMethod({ itemData, contract }) {
             }
         } catch (error) {
             console.error('Contract interaction error:', error);
-            if (isMounted.current) {
-                setCallResult(error.message);
-                setDisplayResult(error.message);
-                setResultType('error');
-                setShowResult(true);
-            }
-            
+            setCallResult(error.message);
+            setDisplayResult(error.message);
+            setResultType('error');
+            setShowResult(true);
+
             notification.error({
                 message: 'Error',
                 description: error.message
@@ -489,55 +468,20 @@ export default function AppMethod({ itemData, contract }) {
         )}
                 {/* Result section */}
         <Divider style={{ margin: '20px 0 10px' }} />
-        
-        <ResultContainer>
-            <ResultTitle>
-                <span>Result</span>
-                {isLoading && <Spin size="small" />}
-            </ResultTitle>
-            
-            {/* Hidden debug info */}
-            <div style={{ display: 'none' }}>
-                Debug: showResult={showResult ? 'true' : 'false'}, 
-                resultType={resultType || 'none'}, 
-                callResult={callResult ? `"${callResult}"` : 'empty'}
+
+        {showResult ? (
+            <ResultDisplay
+                result={displayResult || callResult}
+                isError={resultType === 'error'}
+                transactionHash={transactionHash}
+                blockNumber={blockNumber}
+                chainId={chainId}
+                methodName={methodName}
+            />
+        ) : (
+            <div style={{ color: '#999', padding: '10px 0', textAlign: 'center' }}>
+                {isLoading ? 'Processing transaction...' : 'No result yet. Click Submit to call the function.'}
             </div>
-            
-            {showResult ? (
-                <div>
-                    <Text type={resultType === 'error' ? 'danger' : 'success'}>
-                        {resultType === 'error' ? 'Error' : 'Success'}
-                    </Text>
-                    
-                    <ResultValue>
-                        <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-                            Output:
-                        </div>
-                        
-                        {/* Single result display */}
-                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '4px' }}>
-                            {window.lastResult || displayResult || 'No result data available'}
-                        </pre>
-                    </ResultValue>
-                    
-                    {/* Only show additional details for transactions, not for simple function calls */}
-                    {transactionHash && (
-                        <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
-                            <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-                                Transaction Details:
-                            </div>
-                            <div style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', backgroundColor: '#fff', padding: '8px', border: '1px solid #eee', borderRadius: '4px' }}>
-                                <div><strong>Hash:</strong> {transactionHash}</div>
-                                {blockNumber && <div><strong>Block:</strong> {blockNumber}</div>}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            ) : (
-                <div style={{ color: '#999', padding: '10px 0' }}>
-                    {isLoading ? 'Processing transaction...' : 'No result yet. Click Submit to call the function.'}
-                </div>
-            )}
-        </ResultContainer>
+        )}
     </div>
 }

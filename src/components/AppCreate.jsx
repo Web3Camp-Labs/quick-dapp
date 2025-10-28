@@ -1,80 +1,216 @@
 import styled from 'styled-components';
-import { Input, Button, notification, Alert, Typography, Form, Card, Tooltip } from 'antd';
+import { Input, Button, notification, Alert, Form, Tooltip } from 'antd';
 import { InfoCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useEffect, useMemo, useState } from 'react';
 import { useDappContext } from '../store/contextProvider';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
-
-const { Text, Title: AntTitle } = Typography;
+import { saveDapp } from '../utils/storage';
 
 
 const WD = styled.div`
-    padding: 2em;
-    background-color: #ffffff;
+    padding: 2em 2em;
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
     width: 100vw;
     flex-grow: 1;
-    border-radius: 10px;
-    max-width: 800px;
+    min-height: calc(100vh - 64px);
+
+    @media (max-width: 768px) {
+        padding: 1.5em 1em;
+    }
+`;
+
+const PageContainer = styled.div`
+    max-width: 900px;
     margin: 0 auto;
 `;
 
+const HeaderSection = styled.div`
+    text-align: center;
+    margin-bottom: 1.2em;
+`;
+
 const Title = styled.h1`
-  font-size: 24px;
-  text-align: center;
-  font-weight: bold;
-  margin-bottom: 30px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 4px;
+
+    @media (max-width: 768px) {
+        font-size: 1.3rem;
+    }
+`;
+
+const FormCard = styled.div`
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 2em;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%) border-box;
+
+    @media (max-width: 768px) {
+        padding: 1.5em 1.2em;
+    }
 `;
 
 const FormContainer = styled.div`
-    margin-bottom: 30px;
-`;
-
-const FormItem = styled(Form.Item)`
     margin-bottom: 24px;
 `;
 
+const FormItem = styled(Form.Item)`
+    margin-bottom: 20px;
+`;
+
 const FieldLabel = styled.div`
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 14px;
+    color: #2d3748;
     margin-bottom: 8px;
     display: flex;
     align-items: center;
-    
+
     .required-mark {
-        color: #ff4d4f;
+        color: #667eea;
         margin-left: 4px;
+        font-size: 16px;
     }
-    
+
     .info-icon {
         margin-left: 8px;
-        color: #1890ff;
+        color: #667eea;
+        cursor: help;
+        transition: all 0.3s ease;
+
+        &:hover {
+            color: #764ba2;
+            transform: scale(1.1);
+        }
     }
 `;
 
 const FieldDescription = styled.div`
-    color: #888;
-    font-size: 12px;
+    color: #718096;
+    font-size: 13px;
     margin-bottom: 8px;
+    line-height: 1.5;
+`;
+
+const StyledInput = styled(Input)`
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    padding: 10px 14px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+
+    &:hover {
+        border-color: #667eea;
+    }
+
+    &:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+`;
+
+const StyledTextArea = styled(Input.TextArea)`
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    padding: 10px 14px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+
+    &:hover {
+        border-color: #667eea;
+    }
+
+    &:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
 `;
 
 const ValidationStatus = styled.div`
     display: flex;
     align-items: center;
-    margin-top: 4px;
-    
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 500;
+
     &.valid {
-        color: #52c41a;
+        color: #48bb78;
     }
-    
+
     &.invalid {
-        color: #ff4d4f;
+        color: #f56565;
+    }
+
+    svg {
+        margin-right: 6px;
     }
 `;
 
 const ButtonContainer = styled.div`
     display: flex;
     justify-content: center;
-    margin-top: 20px;
+    gap: 16px;
+    margin-top: 30px;
+`;
+
+const CreateButton = styled(Button)`
+    height: 45px;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 0 36px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+
+    &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        background: #cbd5e0;
+        box-shadow: none;
+    }
+`;
+
+const TestButton = styled(Button)`
+    height: 45px;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 0 32px;
+    border-radius: 22px;
+    border: 2px solid #667eea;
+    color: #667eea;
+    background: transparent;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: rgba(102, 126, 234, 0.1);
+        border-color: #764ba2;
+        color: #764ba2;
+        transform: translateY(-2px);
+    }
+`;
+
+const StyledAlert = styled(Alert)`
+    border-radius: 10px;
+    border: 2px solid #fbd38d;
+    margin-bottom: 20px;
 `;
 
 export default function AppCreate() {
@@ -188,7 +324,7 @@ export default function AppCreate() {
             return;
         }
         
-        if (ethers.utils.isAddress(value)) {
+        if (ethers.isAddress(value)) {
             setAddressValidation({
                 isValid: true,
                 message: 'Valid Ethereum address',
@@ -300,7 +436,7 @@ export default function AppCreate() {
                 return;
             }
             
-            if (!ethers.utils.isAddress(contractAddr)) {
+            if (!ethers.isAddress(contractAddr)) {
                 notification.error({
                     message: 'Invalid Address',
                     description: 'The contract address format is invalid.',
@@ -330,23 +466,30 @@ export default function AppCreate() {
                 }
             }
             
+            const dappData = {
+                appName: name,
+                appDesc,
+                appAbi: abijson,
+                appNetwork: networkName,
+                appAddress: contractAddr,
+            };
+
             // Dispatch data to context
             dispatch({
                 type: 'set_appData',
-                payload: {
-                    appName: name,
-                    appDesc,
-                    appAbi: abijson,
-                    appNetwork: networkName,
-                    appAddress: contractAddr,
-                }
+                payload: dappData
             });
-            
+
+            // Save to localStorage
+            const saved = saveDapp(dappData);
+
             notification.success({
                 message: 'dApp Created',
-                description: 'Your dApp has been created successfully!',
+                description: saved
+                    ? 'Your dApp has been created and saved successfully!'
+                    : 'Your dApp has been created successfully! (Note: Could not save to browser storage)',
             });
-            
+
             // Navigate to detail page
             navigate('/detail');
             
@@ -363,123 +506,141 @@ export default function AppCreate() {
 
     return (
         <WD>
-            <Title>Create your dApp</Title>
-            
-            {!account && (
-                <Alert
-                    message="Wallet Not Connected"
-                    description="Please connect your wallet using the button in the header to create and interact with dApps."
-                    type="warning"
-                    showIcon
-                    style={{ marginBottom: '20px' }}
-                />
-            )}
-            
-            <Form form={form} layout="vertical">
-                <FormContainer>
-                    <FormItem>
-                        <FieldLabel>Name</FieldLabel>
-                        <Input 
-                            placeholder="My Awesome Dapp" 
-                            value={appName} 
-                            onChange={onNameChange} 
-                        />
-                    </FormItem>
-                    
-                    <FormItem>
-                        <FieldLabel>Description</FieldLabel>
-                        <Input.TextArea 
-                            placeholder="A brief description of what your dApp does" 
-                            value={appDesc} 
-                            onChange={onDescChange} 
-                            rows={2}
-                        />
-                    </FormItem>
-                    
-                    <FormItem>
-                        <FieldLabel>
-                            Contract ABI
-                            <span className="required-mark">*</span>
-                            <Tooltip title="The Application Binary Interface (ABI) defines how to interact with the smart contract. You can get this from your contract compilation or from Etherscan.">
-                                <InfoCircleOutlined className="info-icon" />
-                            </Tooltip>
-                        </FieldLabel>
-                        <Input.TextArea 
-                            placeholder='[{"inputs":[],"name":"myFunction","outputs":[],"stateMutability":"view","type":"function"}]' 
-                            value={appAbi} 
-                            onChange={onAbiChange} 
-                            rows={4}
-                            status={abiValidation.status === 'error' ? 'error' : ''}
-                        />
-                        {abiValidation.message && (
-                            <ValidationStatus className={abiValidation.isValid ? 'valid' : 'invalid'}>
-                                {abiValidation.isValid ? <CheckCircleOutlined /> : null}
-                                <span style={{ marginLeft: '5px' }}>{abiValidation.message}</span>
-                            </ValidationStatus>
-                        )}
-                    </FormItem>
-                    
-                    <FormItem>
-                        <FieldLabel>
-                            Contract Address
-                            <span className="required-mark">*</span>
-                            <Tooltip title="The Ethereum address where your smart contract is deployed.">
-                                <InfoCircleOutlined className="info-icon" />
-                            </Tooltip>
-                        </FieldLabel>
-                        <Input 
-                            placeholder="0x..." 
-                            value={contractAddress} 
-                            onChange={onAddressChange} 
-                            status={addressValidation.status === 'error' ? 'error' : ''}
-                        />
-                        {addressValidation.message && (
-                            <ValidationStatus className={addressValidation.isValid ? 'valid' : 'invalid'}>
-                                {addressValidation.isValid ? <CheckCircleOutlined /> : null}
-                                <span style={{ marginLeft: '5px' }}>{addressValidation.message}</span>
-                            </ValidationStatus>
-                        )}
-                    </FormItem>
-                    
-                    <FormItem>
-                        <FieldLabel>
-                            Network Name
-                            <Tooltip title="Specify the network where your contract is deployed. Use 'homestead' for Ethereum mainnet, or network names like 'goerli', 'sepolia', etc.">
-                                <InfoCircleOutlined className="info-icon" />
-                            </Tooltip>
-                        </FieldLabel>
-                        <FieldDescription>
-                            Use "homestead" for Ethereum mainnet. Leave blank for a custom network.
-                        </FieldDescription>
-                        <Input 
-                            placeholder="goerli" 
-                            value={networkName} 
-                            onChange={onNetworkNameChange} 
-                        />
-                    </FormItem>
-                </FormContainer>
-                
-                <ButtonContainer>
-                    {showTestDataButton && (
-                        <Button 
-                            onClick={fillTestData} 
-                            style={{ marginRight: '10px' }}
-                        >
-                            Fill Test Data
-                        </Button>
-                    )}
-                    
-                    <Button 
-                        type="primary" 
-                        onClick={saveApp} 
-                        disabled={saveButtonDisabled}
-                        loading={isSubmitting}
-                        size="large"
-                    >
-                        Create dApp
-                    </Button>
-                </ButtonContainer>
-            </Form>
+            <PageContainer>
+                <HeaderSection>
+                    <Title>Create Your dApp</Title>
+                </HeaderSection>
+
+                {!account && (
+                    <StyledAlert
+                        message="Wallet Not Connected"
+                        description="Please connect your wallet using the button in the header to create and interact with dApps."
+                        type="warning"
+                        showIcon
+                    />
+                )}
+
+                <FormCard>
+                    <Form form={form} layout="vertical">
+                        <FormContainer>
+                            <FormItem>
+                                <FieldLabel>Name</FieldLabel>
+                                <FieldDescription>
+                                    Give your dApp a memorable name (optional)
+                                </FieldDescription>
+                                <StyledInput
+                                    placeholder="My Awesome dApp"
+                                    value={appName}
+                                    onChange={onNameChange}
+                                    size="large"
+                                />
+                            </FormItem>
+
+                            <FormItem>
+                                <FieldLabel>Description</FieldLabel>
+                                <FieldDescription>
+                                    Briefly describe what your dApp does (optional)
+                                </FieldDescription>
+                                <StyledTextArea
+                                    placeholder="A decentralized application for..."
+                                    value={appDesc}
+                                    onChange={onDescChange}
+                                    rows={3}
+                                />
+                            </FormItem>
+
+                            <FormItem>
+                                <FieldLabel>
+                                    Contract ABI
+                                    <span className="required-mark">*</span>
+                                    <Tooltip title="The Application Binary Interface (ABI) defines how to interact with the smart contract. You can get this from your contract compilation or from Etherscan.">
+                                        <InfoCircleOutlined className="info-icon" />
+                                    </Tooltip>
+                                </FieldLabel>
+                                <FieldDescription>
+                                    Paste the JSON ABI from your contract compilation or block explorer
+                                </FieldDescription>
+                                <StyledTextArea
+                                    placeholder='[{"inputs":[],"name":"myFunction","outputs":[],"stateMutability":"view","type":"function"}]'
+                                    value={appAbi}
+                                    onChange={onAbiChange}
+                                    rows={6}
+                                    status={abiValidation.status === 'error' ? 'error' : ''}
+                                />
+                                {abiValidation.message && (
+                                    <ValidationStatus className={abiValidation.isValid ? 'valid' : 'invalid'}>
+                                        {abiValidation.isValid && <CheckCircleOutlined />}
+                                        <span>{abiValidation.message}</span>
+                                    </ValidationStatus>
+                                )}
+                            </FormItem>
+
+                            <FormItem>
+                                <FieldLabel>
+                                    Contract Address
+                                    <span className="required-mark">*</span>
+                                    <Tooltip title="The Ethereum address where your smart contract is deployed.">
+                                        <InfoCircleOutlined className="info-icon" />
+                                    </Tooltip>
+                                </FieldLabel>
+                                <FieldDescription>
+                                    Enter the deployed contract address (starts with 0x)
+                                </FieldDescription>
+                                <StyledInput
+                                    placeholder="0x1234567890abcdef1234567890abcdef12345678"
+                                    value={contractAddress}
+                                    onChange={onAddressChange}
+                                    status={addressValidation.status === 'error' ? 'error' : ''}
+                                    size="large"
+                                />
+                                {addressValidation.message && (
+                                    <ValidationStatus className={addressValidation.isValid ? 'valid' : 'invalid'}>
+                                        {addressValidation.isValid && <CheckCircleOutlined />}
+                                        <span>{addressValidation.message}</span>
+                                    </ValidationStatus>
+                                )}
+                            </FormItem>
+
+                            <FormItem>
+                                <FieldLabel>
+                                    Network Name
+                                    <Tooltip title="Specify the network where your contract is deployed. Use 'homestead' for Ethereum mainnet, or network names like 'goerli', 'sepolia', etc.">
+                                        <InfoCircleOutlined className="info-icon" />
+                                    </Tooltip>
+                                </FieldLabel>
+                                <FieldDescription>
+                                    Use "homestead" for Ethereum mainnet, or specify testnet name (goerli, sepolia, etc.)
+                                </FieldDescription>
+                                <StyledInput
+                                    placeholder="homestead"
+                                    value={networkName}
+                                    onChange={onNetworkNameChange}
+                                    size="large"
+                                />
+                            </FormItem>
+                        </FormContainer>
+
+                        <ButtonContainer>
+                            {showTestDataButton && (
+                                <TestButton
+                                    onClick={fillTestData}
+                                >
+                                    Fill Test Data
+                                </TestButton>
+                            )}
+
+                            <CreateButton
+                                type="primary"
+                                onClick={saveApp}
+                                disabled={saveButtonDisabled}
+                                loading={isSubmitting}
+                            >
+                                Create dApp
+                            </CreateButton>
+                        </ButtonContainer>
+                    </Form>
+                </FormCard>
+            </PageContainer>
         </WD>
     );
 }

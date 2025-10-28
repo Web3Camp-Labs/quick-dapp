@@ -132,9 +132,9 @@ export const useTransactionTracker = (provider) => {
       // Get current gas prices from the network
       const feeData = await provider.getFeeData();
       if (!feeData || !feeData.gasPrice) return null;
-      
+
       const txGasPrice = BigInt(tx.gasPrice || '0');
-      const currentGasPrice = feeData.gasPrice.toBigInt();
+      const currentGasPrice = feeData.gasPrice;
       
       // Calculate estimated time based on gas price difference
       // This is a very rough estimation

@@ -1,4 +1,4 @@
-import { Button, notification, Tooltip, Dropdown, Menu, Typography } from 'antd';
+import { Button, notification, Dropdown, Menu } from 'antd';
 import { WalletOutlined, DisconnectOutlined, CopyOutlined, HomeOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
@@ -6,6 +6,14 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../res/logo.svg';
 import { useDappContext } from '../store/contextProvider';
 import { ethers } from 'ethers';
+import WalletModal from './WalletModal';
+import {
+    connectWallet as connectToWallet,
+    disconnectWallet as disconnectFromWallet,
+    getProvider,
+    getSelectedWallet,
+    isWalletAvailable,
+} from '../utils/walletUtils';
 
 const HeaderTop = styled.div`
     display: flex;
@@ -98,46 +106,57 @@ export default function Header() {
     const [account, setAccount] = useState('');
     const [network, setNetwork] = useState(null);
     const [isConnecting, setIsConnecting] = useState(false);
+    const [showWalletModal, setShowWalletModal] = useState(false);
+    const [selectedWalletName, setSelectedWalletName] = useState('');
     const [copied, setCopied] = useState(false);
 
-    const { dispatch, state } = useDappContext();
+    const { dispatch } = useDappContext();
     const navigate = useNavigate();
 
     // Check if account is already connected on component mount
     useEffect(() => {
         const checkConnection = async () => {
-            if (typeof window.ethereum !== 'undefined') {
+            const provider = getProvider();
+            if (provider) {
                 try {
                     // Get current accounts
-                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    const accounts = await provider.request({ method: 'eth_accounts' });
                     if (accounts.length > 0) {
                         setAccount(accounts[0]);
                         dispatch({ type: 'set_account', payload: accounts[0] });
-                        
+
+                        // Get selected wallet name
+                        const wallet = getSelectedWallet();
+                        if (wallet) {
+                            setSelectedWalletName(wallet.name);
+                        }
+
                         // Get current network
                         await updateNetworkInfo();
                     }
-                    
+
                     // Listen for account changes
-                    window.ethereum.on('accountsChanged', handleAccountsChanged);
-                    
+                    provider.on('accountsChanged', handleAccountsChanged);
+
                     // Listen for network changes
-                    window.ethereum.on('chainChanged', handleChainChanged);
+                    provider.on('chainChanged', handleChainChanged);
                 } catch (error) {
                     console.error('Error checking wallet connection:', error);
                 }
             }
         };
-        
+
         checkConnection();
-        
+
         // Cleanup listeners on unmount
         return () => {
-            if (window.ethereum) {
-                window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-                window.ethereum.removeListener('chainChanged', handleChainChanged);
+            const provider = getProvider();
+            if (provider) {
+                provider.removeListener('accountsChanged', handleAccountsChanged);
+                provider.removeListener('chainChanged', handleChainChanged);
             }
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     
     // Handle account changes
@@ -165,9 +184,10 @@ export default function Header() {
     
     // Get network information
     const updateNetworkInfo = async () => {
-        if (typeof window.ethereum !== 'undefined') {
+        const walletProvider = getProvider();
+        if (walletProvider) {
             try {
-                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const provider = new ethers.BrowserProvider(walletProvider);
                 const network = await provider.getNetwork();
                 setNetwork(network);
             } catch (error) {
@@ -182,34 +202,35 @@ export default function Header() {
         return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
     };
     
-    // Connect wallet
-    const connectWallet = async () => {
-        if (typeof window.ethereum === 'undefined') {
-            notification.error({
-                message: 'MetaMask Required',
-                description: 'Please install MetaMask to connect your wallet.',
-                duration: 10,
-                btn: (
-                    <Button type="primary" onClick={() => window.open('https://metamask.io/download.html', '_blank')}>
-                        Install MetaMask
-                    </Button>
-                ),
+    // Open wallet selection modal
+    const openWalletModal = () => {
+        if (!isWalletAvailable()) {
+            notification.warning({
+                message: 'No Wallet Detected',
+                description: 'Please install MetaMask, Coinbase Wallet, or another compatible wallet extension.',
+                duration: 5,
             });
-            return;
         }
-        
+        setShowWalletModal(true);
+    };
+
+    // Handle wallet connection from modal
+    const handleWalletConnect = async (wallet) => {
         setIsConnecting(true);
-        
+
         try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            setAccount(accounts[0]);
-            dispatch({ type: 'set_account', payload: accounts[0] });
-            
+            const connectedAccount = await connectToWallet(wallet);
+            setAccount(connectedAccount);
+            setSelectedWalletName(wallet.name);
+            dispatch({ type: 'set_account', payload: connectedAccount });
+
             await updateNetworkInfo();
-            
+
+            setShowWalletModal(false);
+
             notification.success({
                 message: 'Wallet Connected',
-                description: 'Your wallet has been successfully connected!',
+                description: `Successfully connected to ${wallet.name}!`,
                 duration: 3,
             });
         } catch (error) {
@@ -242,9 +263,11 @@ export default function Header() {
         }
     };
     
-    // Disconnect wallet (for UI purposes)
-    const disconnectWallet = () => {
+    // Disconnect wallet
+    const handleDisconnect = () => {
+        disconnectFromWallet();
         setAccount('');
+        setSelectedWalletName('');
         dispatch({ type: 'set_account', payload: '' });
         notification.info({
             message: 'Wallet Disconnected',
@@ -279,53 +302,69 @@ export default function Header() {
     // Wallet menu items
     const walletMenu = (
         <Menu>
+            {selectedWalletName && (
+                <Menu.Item key="wallet" disabled style={{ cursor: 'default' }}>
+                    <span style={{ color: '#667eea', fontWeight: 600 }}>
+                        {selectedWalletName}
+                    </span>
+                </Menu.Item>
+            )}
+            {selectedWalletName && <Menu.Divider />}
             <Menu.Item key="copy" onClick={copyAddress} icon={<CopyOutlined />}>
                 Copy Address
             </Menu.Item>
-            <Menu.Item key="disconnect" onClick={disconnectWallet} icon={<DisconnectOutlined />}>
+            <Menu.Item key="disconnect" onClick={handleDisconnect} icon={<DisconnectOutlined />}>
                 Disconnect
             </Menu.Item>
         </Menu>
     );
 
     return (
-        <HeaderTop>
-            <Logo onClick={backToHome}>
-                <img src={logo} alt="Quick dApp Logo" />
-            </Logo>
+        <>
+            <HeaderTop>
+                <Logo onClick={backToHome}>
+                    <img src={logo} alt="Quick dApp Logo" />
+                </Logo>
 
-            <HeaderActions>
-                <Button 
-                    type="text" 
-                    icon={<HomeOutlined />} 
-                    onClick={backToHome}
-                >
-                    Home
-                </Button>
-                
-                {!account ? (
-                    <Button 
-                        type="primary" 
-                        icon={<WalletOutlined />} 
-                        onClick={connectWallet} 
-                        loading={isConnecting}
+                <HeaderActions>
+                    <Button
+                        type="text"
+                        icon={<HomeOutlined />}
+                        onClick={backToHome}
                     >
-                        Connect Wallet
+                        Home
                     </Button>
-                ) : (
-                    <Dropdown overlay={walletMenu} trigger={['click']}>
-                        <AccountDisplay>
-                            {network && (
-                                <NetworkBadge color={getNetworkInfo().color}>
-                                    {getNetworkInfo().name}
-                                </NetworkBadge>
-                            )}
-                            <WalletOutlined />
-                            <span className="address">{formatAddress(account)}</span>
-                        </AccountDisplay>
-                    </Dropdown>
-                )}
-            </HeaderActions>
-        </HeaderTop>
-    )
+
+                    {!account ? (
+                        <Button
+                            type="primary"
+                            icon={<WalletOutlined />}
+                            onClick={openWalletModal}
+                            loading={isConnecting}
+                        >
+                            Connect Wallet
+                        </Button>
+                    ) : (
+                        <Dropdown overlay={walletMenu} trigger={['click']}>
+                            <AccountDisplay>
+                                {network && (
+                                    <NetworkBadge color={getNetworkInfo().color}>
+                                        {getNetworkInfo().name}
+                                    </NetworkBadge>
+                                )}
+                                <WalletOutlined />
+                                <span className="address">{formatAddress(account)}</span>
+                            </AccountDisplay>
+                        </Dropdown>
+                    )}
+                </HeaderActions>
+            </HeaderTop>
+
+            <WalletModal
+                visible={showWalletModal}
+                onCancel={() => setShowWalletModal(false)}
+                onConnect={handleWalletConnect}
+            />
+        </>
+    );
 }

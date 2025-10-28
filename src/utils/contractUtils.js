@@ -27,7 +27,7 @@ export const formatTypeValue = (type, value) => {
 
       // Get the base type (without array brackets)
       const baseType = type.substring(0, type.indexOf('['));
-      
+
       // Format each element in the array
       return arrayValue.map(item => formatTypeValue(baseType, item));
     } catch (error) {
@@ -46,7 +46,7 @@ export const formatTypeValue = (type, value) => {
 
   // Handle address type
   if (type === 'address') {
-    if (!ethers.utils.isAddress(value)) {
+    if (!ethers.isAddress(value)) {
       throw new Error('Invalid Ethereum address');
     }
     return value;
@@ -67,7 +67,7 @@ export const formatTypeValue = (type, value) => {
       if (isNaN(value)) {
         throw new Error(`Not a valid number for ${type}`);
       }
-      return ethers.BigNumber.from(value);
+      return BigInt(value);
     } catch (error) {
       throw new Error(`Invalid number format for ${type}: ${error.message}`);
     }
@@ -76,7 +76,7 @@ export const formatTypeValue = (type, value) => {
   // Handle bytes types
   if (type.startsWith('bytes')) {
     if (type === 'bytes') {
-      return ethers.utils.arrayify(value);
+      return ethers.getBytes(value);
     }
     // Handle fixed-size bytes
     return value;
@@ -101,41 +101,43 @@ export const formatContractResult = (result, outputDef) => {
   if (result === undefined) {
     return 'No return value';
   }
-  
+
   if (result === null) {
     return 'null';
   }
-  
-  if (result instanceof ethers.BigNumber) {
-    // Check if it might be representing ETH
-    if (outputDef && 
-        (outputDef.type.includes('uint') || 
-         (outputDef.name && outputDef.name.toLowerCase().includes('balance')))) {
-      return result.toString();
-    }
+
+  // Handle BigInt (ethers v6 uses native BigInt)
+  if (typeof result === 'bigint') {
     return result.toString();
   }
-  
+
   if (Array.isArray(result)) {
-    return JSON.stringify(result, null, 2);
+    // Handle array results, converting bigints to strings for JSON
+    const formatted = result.map(item =>
+      typeof item === 'bigint' ? item.toString() : item
+    );
+    return JSON.stringify(formatted, null, 2);
   }
-  
+
   if (typeof result === 'boolean') {
     return result.toString();
   }
-  
+
   if (typeof result === 'object') {
     try {
-      return JSON.stringify(result, null, 2);
+      // Custom replacer to handle bigint in JSON
+      const replacer = (key, value) =>
+        typeof value === 'bigint' ? value.toString() : value;
+      return JSON.stringify(result, replacer, 2);
     } catch (e) {
       return 'Complex object: ' + Object.prototype.toString.call(result);
     }
   }
-  
+
   if (typeof result === 'string') {
     return result;
   }
-  
+
   return String(result);
 };
 
