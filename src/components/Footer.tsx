@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import GithubImg from "../res/github.png";
 import TwitterImg from "../res/Twitter.png";
+import Web3CampLogo from '/web3camp.logo.png';
 
 const Footer = styled.div`
   width: 100%;
@@ -135,7 +136,7 @@ export default function footerBox(){
                 {/* Left Panel */}
                 <div className="leftPanel">
                     <a href="https://web3camp.us" target="_blank" rel="noreferrer" className="companyName">
-                        <img src="/web3camp.logo.png" alt="Web3Camp" className="logoImg"/>
+                        <img src={Web3CampLogo} alt="Web3Camp" className="logoImg"/>
                     </a>
                     <div className="socialIcons">
                         <a href="https://github.com/Web3Camp-Labs/quick-dapp" target="_blank" rel="noreferrer">
