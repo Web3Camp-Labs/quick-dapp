@@ -2,7 +2,7 @@
   "name": "quick-dapp",
   "version": "0.1.0",
   "private": true,
-  "homepage": "./",
+  "homepage": "/quick-dapp/",
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
     "@testing-library/jest-dom": "^6.6.3",
