@@ -2,7 +2,6 @@
   "name": "quick-dapp",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/quick-dapp/",
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
     "@testing-library/jest-dom": "^6.6.3",
@@ -12,56 +11,30 @@
     "@types/react-dom": "^18.3.1",
     "@types/styled-components": "^5.1.34",
     "antd": "^5.22.2",
-    "babel-plugin-styled-components": "^2.1.4",
     "ethers": "^6.13.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
-    "react-scripts": "5.0.1",
     "styled-components": "^6.1.13",
     "typescript": "^4.9.5",
     "web-vitals": "^4.2.3"
   },
   "devDependencies": {
-    "@types/node": "^22.8.7"
+    "@types/node": "^22.8.7",
+    "@vitejs/plugin-react": "^5.1.0",
+    "vite": "^7.1.12",
+    "vite-plugin-svgr": "^4.5.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "dev": "vite",
+    "start": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "react-scripts test"
   },
   "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ],
     "globals": {
       "BigInt": "readonly"
-    }
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "babel": {
-    "presets": [
-      "react-app"
-    ],
-    "env": {
-      "development": {
-        "plugins": [
-          "babel-plugin-styled-components"
-        ]
-      }
     }
   }
 }

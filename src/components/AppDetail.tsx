@@ -172,23 +172,23 @@ const StyledTabs = styled(Tabs)`
     }
 `;
 
-const MethodItem = styled.div`
+const MethodItem = styled.div<{ $active: boolean }>`
     padding: 14px 16px;
     margin-bottom: 6px;
     cursor: pointer;
     border-radius: 10px;
-    background: ${props => props.active ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f8f9fa'};
-    color: ${props => props.active ? '#ffffff' : '#2d3748'};
+    background: ${props => props.$active ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f8f9fa'};
+    color: ${props => props.$active ? '#ffffff' : '#2d3748'};
     font-size: 14px;
-    font-weight: ${props => props.active ? '600' : '500'};
+    font-weight: ${props => props.$active ? '600' : '500'};
     transition: all 0.3s ease;
-    border: 2px solid ${props => props.active ? 'transparent' : 'transparent'};
+    border: 2px solid ${props => props.$active ? 'transparent' : 'transparent'};
     font-family: 'Monaco', 'Menlo', monospace;
 
     &:hover {
-        background: ${props => props.active ? 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)' : '#e2e8f0'};
+        background: ${props => props.$active ? 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)' : '#e2e8f0'};
         transform: translateX(4px);
-        border-color: ${props => props.active ? 'transparent' : '#667eea'};
+        border-color: ${props => props.$active ? 'transparent' : '#667eea'};
     }
 
     &:last-child {
@@ -253,7 +253,7 @@ export default function AppDetail() {
     const [readActiveIndex, setReadActive] = useState(0);
     const [writeActiveIndex, setWriteActive] = useState(0);
 
-    const [contract, setContract] = useState();
+    const [contract, setContract] = useState<any>();
     const [isRestoring, setIsRestoring] = useState(false);
 
     const { state, dispatch } = useDappContext();
@@ -416,7 +416,7 @@ export default function AppDetail() {
                                     readMethods.map((item, index) => (
                                         <MethodItem
                                             key={`readMethods_${index}`}
-                                            active={index === readActiveIndex}
+                                            $active={index === readActiveIndex}
                                             onClick={() => onChoose(index)}
                                         >
                                             {item}
@@ -441,7 +441,7 @@ export default function AppDetail() {
                                     writeMethods.map((item, index) => (
                                         <MethodItem
                                             key={`writeMethods_${index}`}
-                                            active={index === writeActiveIndex}
+                                            $active={index === writeActiveIndex}
                                             onClick={() => onChoose(index)}
                                         >
                                             {item}

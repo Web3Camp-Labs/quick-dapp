@@ -7,12 +7,12 @@ import { ethers } from 'ethers';
 
 const { Text, Link } = Typography;
 
-const ResultContainer = styled.div`
+const ResultContainer = styled.div<{ $isError: boolean }>`
   margin-top: 15px;
   padding: 16px;
   border-radius: 6px;
-  background-color: ${props => props.isError ? '#fff2f0' : '#f6ffed'};
-  border: 1px solid ${props => props.isError ? '#ffccc7' : '#b7eb8f'};
+  background-color: ${props => props.$isError ? '#fff2f0' : '#f6ffed'};
+  border: 1px solid ${props => props.$isError ? '#ffccc7' : '#b7eb8f'};
   word-break: break-word;
 `;
 
@@ -25,10 +25,10 @@ const ResultHeader = styled.div`
   gap: 8px;
 `;
 
-const ResultTitle = styled.div`
+const ResultTitle = styled.div<{ $isError: boolean }>`
   font-weight: 600;
   font-size: 14px;
-  color: ${props => props.isError ? '#cf1322' : '#52c41a'};
+  color: ${props => props.$isError ? '#cf1322' : '#52c41a'};
 `;
 
 const ResultValue = styled.div`
@@ -81,6 +81,16 @@ const InfoRow = styled.div`
 /**
  * Enhanced result display component with formatting and copy functionality
  */
+interface ResultDisplayProps {
+  result: any;
+  isError?: boolean;
+  transactionHash?: string;
+  blockNumber?: number;
+  chainId?: number;
+  methodName?: string;
+  outputType?: any;
+}
+
 const ResultDisplay = ({
   result,
   isError = false,
@@ -89,7 +99,7 @@ const ResultDisplay = ({
   chainId,
   methodName,
   outputType,
-}) => {
+}: ResultDisplayProps) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -184,9 +194,9 @@ const ResultDisplay = ({
   const txExplorerUrl = transactionHash && chainId ? getTxExplorerUrl(transactionHash, chainId) : null;
 
   return (
-    <ResultContainer isError={isError}>
+    <ResultContainer $isError={isError}>
       <ResultHeader>
-        <ResultTitle isError={isError}>
+        <ResultTitle $isError={isError}>
           {isError ? 'Error' : 'Result'}
         </ResultTitle>
         {!isError && methodName && (

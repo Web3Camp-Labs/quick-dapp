@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     /*
     appName: null,
     appDesc: null,
@@ -7,4 +7,4 @@ module.exports = {
     appAddress: null,
     */
     appData: {},
-}
+};

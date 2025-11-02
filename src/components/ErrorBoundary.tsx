@@ -1,9 +1,21 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import styled from 'styled-components';
 import { Button, Result, Typography } from 'antd';
 import { BugOutlined, ReloadOutlined, HomeOutlined } from '@ant-design/icons';
 
 const { Paragraph, Text } = Typography;
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallbackMessage?: string;
+  onReset?: () => void;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: React.ErrorInfo | null;
+}
 
 const ErrorContainer = styled.div`
   min-height: 400px;
@@ -37,8 +49,8 @@ const ErrorDetails = styled.details`
   }
 `;
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
       hasError: false,
@@ -47,12 +59,12 @@ class ErrorBoundary extends React.Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(_error: Error): Partial<ErrorBoundaryState> {
     // Update state so the next render will show the fallback UI
     return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     // Log error to console
     console.error('Error caught by boundary:', error, errorInfo);
 
@@ -121,7 +133,7 @@ class ErrorBoundary extends React.Component {
               ),
             ]}
           >
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <ErrorDetails>
                 <summary>Error Details (Development Only)</summary>
                 <Paragraph>

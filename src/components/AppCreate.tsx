@@ -345,7 +345,7 @@ export default function AppCreate() {
 
     const saveButtonDisabled = useMemo(() => {
         // Always enable in development mode for testing
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.DEV) {
             return false;
         }
         
@@ -360,7 +360,7 @@ export default function AppCreate() {
     
     // Determine if we should show test data button
     const showTestDataButton = useMemo(() => {
-        return process.env.NODE_ENV === 'development';
+        return import.meta.env.DEV;
     }, []);
     
     // Function to fill test data
@@ -413,7 +413,7 @@ export default function AppCreate() {
             let name = appName || 'Untitled dApp';
             
             // Use test data if fields are empty in development mode
-            if ((!appAbi || !contractAddress) && process.env.NODE_ENV === 'development') {
+            if ((!appAbi || !contractAddress) && import.meta.env.DEV) {
                 fillTestData();
                 abijson = appAbi;
                 contractAddr = contractAddress;
